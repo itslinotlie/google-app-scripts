@@ -25,6 +25,8 @@ function createTemplate() {
 	ss.getRange("A1").setValue("Form Title:");
 	ss.getRange("A2").setValue("Form Desciption:");
 	ss.getRange("C1").setValue("Folder ID:");
+	//delete the following line if you plan on copying this file
+	ss.getRange("D1").setValue("1D2yMTtKfq9ey5awuTbEiHXViCHDYgejH"); //delete when in production
 	ss.getRange("E1").setValue("Public URL:");
 
 	ss.getRange("A3").setValue("Question Type");
@@ -38,7 +40,7 @@ function createTemplate() {
 	ss.setFrozenRows(3);
 	ss.getRange("A4:A10").setDataValidation(SpreadsheetApp.newDataValidation()
 		.setAllowInvalid(false).requireValueInList(
-		["MC", "CHECKBOX", "TEXT", "PARAGRAPH"], true).build()) //https://developers.google.com/apps-script/reference/spreadsheet/data-validation-builder#setAllowInvalid(Boolean)
+		["MC", "CHECKBOX", "TEXT", "PARAGRAPH", "PAGEBREAK", "HEADER"], true).build()) //https://developers.google.com/apps-script/reference/spreadsheet/data-validation-builder#setAllowInvalid(Boolean)
 }
 function createForm() {
 	let ss = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
@@ -106,6 +108,12 @@ function createForm() {
 		else if(x=="PARAGRAPH") {
 			let question = form.addParagraphTextItem().setTitle(data[i][1]).setHelpText(data[i][2]).setRequired(true);
 			if(data[i][3]!=='') question.setPoints(data[i][3]);
+		}
+		else if(x=="PAGEBREAK") {
+			form.addPageBreakItem().setTitle(data[i][1]).setHelpText(data[i][2]);
+		}
+		else if(x=="HEADER") { //these are stackable, but don't look the greatest
+			form.addSectionHeaderItem().setTitle(data[i][1]).setHelpText(data[i][2]);
 		}
 	}
 }
