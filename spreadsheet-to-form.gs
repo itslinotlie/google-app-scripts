@@ -4,10 +4,12 @@ General knowledge:
 - ss.getRange(row, col, numRow, numCol) is 1-indexed
 */
 //global variables
-var optionStart = 4; //0-indexed
+var ss = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+var optionStart = 6; //0-indexed
 var optionLength = 10;
 var desRow = 20;
-var desCol = 15;
+var desCol = 20;
+var correctColor = "#00ff00"; //default neon green highlight
 
 function onOpen() {
 	let menu = SpreadsheetApp.getUi().createMenu("Forms");
@@ -16,7 +18,7 @@ function onOpen() {
 }
 function createTemplate() {
 	//getActiveSheet() == current sheet opened in the spreadsheet
-	let ss = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+	// let ss = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
 	ss.clearContents();
 	ss.clearFormats();
 
@@ -42,6 +44,8 @@ function createTemplate() {
 	ss.getRange("B3").setValue("Question");
 	ss.getRange("C3").setValue("Instructions");
   ss.getRange("D3").setValue("Points");
+  ss.getRange("E3").setValue("Correct Text");
+  ss.getRange("F3").setValue("Incorrect Text");
   let charStart = String.fromCharCode(65+optionStart)+"3"; //3 represents row # (1-indexed)
   let charEnd = String.fromCharCode(65+optionStart+optionLength-1)+"3"; //Have to -1 for some reason? (check later)
 	ss.getRange(charStart+":"+charEnd).setValue("OPTION");
@@ -54,7 +58,7 @@ function createTemplate() {
 		["MC", "CHECKBOX", "SHORTANSWER", "PARAGRAPH", "PAGEBREAK", "HEADER"], true).build()) //https://developers.google.com/apps-script/reference/spreadsheet/data-validation-builder#setAllowInvalid(Boolean)
 }
 function createForm() {
-	let ss = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+	// let ss = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
   let val = ss.getDataRange().getValues();
   
 	let folder = DriveApp.getFolderById(val[0][3]);
@@ -82,7 +86,8 @@ function createForm() {
 	//To ADD:
 	/*
 	- one sub per person
-	- option for required or not
+  - option for required or not
+  - allow user to pick color for right answer (i.e. place highlight color in this cell)
 	*/
 
 	for (let i=0;i<row;i++) {
@@ -90,37 +95,21 @@ function createForm() {
 
 		if(x=='') continue; 
 		if(x=="MC") {
-			const arr = [];
 			let question = form.addMultipleChoiceItem().setTitle(data[i][1]).setHelpText(data[i][2]).setRequired(true);
-
-			for(let j=optionStart;j<optionStart+optionLength;j++) {
-				if(ss.getRange(i+1, j+1, 1, 1).getValue()=='') continue;
-				if(data[i][3]!=='') question.setPoints(data[i][3]);
-				if(ss.getRange(i+1, j+1, 1, 1).getBackground()=="#80ff00") arr.push(question.createChoice(data[i][j], true));
-				else arr.push(question.createChoice(data[i][j], false));
-			}
-			question.setChoices(arr);
+      setUpQuestion(question, data, i);
 		}
 		else if(x=="CHECKBOX") {
-			const arr = [];
-			let question = form.addCheckboxItem().setTitle(data[i][1]).setHelpText(data[i][2]).setRequired(true);
-
-			for (let j=optionStart;j<optionStart+optionLength;j++) {
-				if(ss.getRange(i+1, j+1, 1, 1).getValue()=='') continue;
-				if(data[i][3]!=='') question.setPoints(data[i][3]);
-				if(ss.getRange(i+1, j+1, 1, 1).getBackground()=="#80ff00") arr.push(question.createChoice(data[i][j], true));
-				else arr.push(question.createChoice(data[i][j], false));
-			}
-			question.setChoices(arr);
+      let question = form.addCheckboxItem().setTitle(data[i][1]).setHelpText(data[i][2]).setRequired(true);
+      setUpQuestion(question, data, i);
 		}
 		// You can set point values for short responses, but how does it work logisticially?
 		else if(x=="SHORTANSWER") {
-			let question = form.addTextItem().setTitle(data[i][1]).setHelpText(data[i][2]).setRequired(true);
-			if(data[i][3]!=='') question.setPoints(data[i][3]);
+      let question = form.addTextItem().setTitle(data[i][1]).setHelpText(data[i][2]).setRequired(true);
+      addPoints(question, data, i);
 		}
 		else if(x=="PARAGRAPH") {
 			let question = form.addParagraphTextItem().setTitle(data[i][1]).setHelpText(data[i][2]).setRequired(true);
-			if(data[i][3]!=='') question.setPoints(data[i][3]);
+      addPoints(question, data, i);
 		}
 		else if(x=="PAGEBREAK") {
 			form.addPageBreakItem().setTitle(data[i][1]).setHelpText(data[i][2]);
@@ -129,4 +118,23 @@ function createForm() {
 			form.addSectionHeaderItem().setTitle(data[i][1]).setHelpText(data[i][2]);
 		}
 	}
+}
+function setUpQuestion(question, data, i) {
+  addOptions(question, data, i);
+  addPoints(question, data, i);
+  if(data[i][3]!=='') question.setPoints(data[i][3]);
+  if(data[i][4]!=='') question.setFeedbackForCorrect(FormApp.createFeedback().setText(data[i][4]).build());
+  if(data[i][5]!=='') question.setFeedbackForIncorrect(FormApp.createFeedback().setText(data[i][5]).build());
+}
+function addOptions(question, data, i) {
+  const arr = [];
+  for(let j=optionStart;j<optionStart+optionLength;j++) {
+    if(ss.getRange(i+1, j+1, 1, 1).getValue()=='') continue;
+    if(ss.getRange(i+1, j+1, 1, 1).getBackground()===correctColor) arr.push(question.createChoice(data[i][j], true));
+    else arr.push(question.createChoice(data[i][j], false));
+  }
+  question.setChoices(arr);
+}
+function addPoints(question, data, i) {
+  if(data[i][3]!=='') question.setPoints(data[i][3]);
 }
