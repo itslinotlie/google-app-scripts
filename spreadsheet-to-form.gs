@@ -4,11 +4,16 @@ General knowledge:
 - ss.getRange(row, col, numRow, numCol) is 1-indexed
 */
 //global variables
-var ss = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+var ss = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet(); //getActiveSheet() == current sheet opened in the spreadsheet
+var form = FormApp.create("Untitled form"); //had to be initialized
+
+var dataRange = ss.getDataRange(); //2d array dimensions
+var data = dataRange.getValues(); //2d array with values
+var question; //simplifies methods if this is global
+
 var optionStart = 6; //0-indexed
 var optionLength = 10;
-var desRow = 20;
-var desCol = 20;
+var desRow = 20, desCol = 20;
 var correctColor = "#00ff00"; //default neon green highlight
 
 function onOpen() {
@@ -17,14 +22,10 @@ function onOpen() {
   menu.addItem("Create Google Form", "createForm").addToUi();
 }
 function createTemplate() {
-  //getActiveSheet() == current sheet opened in the spreadsheet
-  // let ss = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  ss.clearContents();
-  ss.clearFormats();
+  ss.clearContents(); ss.clearFormats();
 
+  //setting up spreadsheet dimensions
   let curRow = ss.getMaxRows(), curCol = ss.getMaxColumns();
-
-  //setting up spreadsheet size
   if(curRow!==desRow) //Exception: Invalid argument is thrown if you .inserRowsAfter(X, 0)
     curRow>desRow? ss.deleteRows(desRow+1, curRow-desRow):ss.insertRowsAfter(curRow-1, desRow-curRow);
   if(curCol!==desCol)
@@ -58,12 +59,7 @@ function createTemplate() {
     ["MC", "CHECKBOX", "SHORTANSWER", "PARAGRAPH", "PAGEBREAK", "HEADER"], true).build()) //https://developers.google.com/apps-script/reference/spreadsheet/data-validation-builder#setAllowInvalid(Boolean)
 }
 function createForm() {
-  // let ss = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  let val = ss.getDataRange().getValues();
-  
-  let folder = DriveApp.getFolderById(val[0][3]);
-  let form = FormApp.create(val[0][1]); //creates and opens a form with title in [0][1]
-  let formID = form.getId();
+  let row = dataRange.getNumRows(), col = dataRange.getNumColumns(); //col is never used
 
   //setting form info to spreadsheet
   let publicUrl = form.getPublishedUrl();
@@ -72,15 +68,14 @@ function createForm() {
   ss.getRange("F2").setValue(privateUrl);
 
   //moving form to the folder
+  let folder = DriveApp.getFolderById(data[0][3]);
+  let formID = form.getId();
   let file = DriveApp.getFileById(formID);
   file.moveTo(folder);
 
-  //filling in form 
-  let dataRange = ss.getDataRange(); //2d array dimensions
-  let row = dataRange.getNumRows(), col = dataRange.getNumColumns();
-  let data = dataRange.getValues(); //2d array with values
-
-  form.setDescription(val[1][1]);
+  //filling in form info
+  form.setTitle(data[0][1]);
+  form.setDescription(data[1][1]);
   form.setIsQuiz(true); //https://developers.google.com/apps-script/reference/forms/form#setisquizenabled
 
   //To ADD:
@@ -93,48 +88,48 @@ function createForm() {
   for (let i=0;i<row;i++) {
     let x = data[i][0]; 
 
-    if(x=='') continue; 
-    if(x=="MC") {
-      let question = form.addMultipleChoiceItem().setTitle(data[i][1]).setHelpText(data[i][2]).setRequired(true);
-      setUpQuestion(question, data, i);
+    if(x==='') continue; 
+    if(x==="MC") {
+      question = form.addMultipleChoiceItem().setTitle(data[i][1]).setHelpText(data[i][2]).setRequired(true);
+      setUpQuestion(i);
     }
-    else if(x=="CHECKBOX") {
-      let question = form.addCheckboxItem().setTitle(data[i][1]).setHelpText(data[i][2]).setRequired(true);
-      setUpQuestion(question, data, i);
+    else if(x==="CHECKBOX") {
+      question = form.addCheckboxItem().setTitle(data[i][1]).setHelpText(data[i][2]).setRequired(true);
+      setUpQuestion(i);
     }
     // You can set point values for short responses, but how does it work logisticially?
-    else if(x=="SHORTANSWER") {
-      let question = form.addTextItem().setTitle(data[i][1]).setHelpText(data[i][2]).setRequired(true);
-      addPoints(question, data, i);
+    else if(x==="SHORTANSWER") {
+      question = form.addTextItem().setTitle(data[i][1]).setHelpText(data[i][2]).setRequired(true);
+      addPoints(i);
     }
-    else if(x=="PARAGRAPH") {
-      let question = form.addParagraphTextItem().setTitle(data[i][1]).setHelpText(data[i][2]).setRequired(true);
-      addPoints(question, data, i);
+    else if(x==="PARAGRAPH") {
+      question = form.addParagraphTextItem().setTitle(data[i][1]).setHelpText(data[i][2]).setRequired(true);
+      addPoints(i);
     }
-    else if(x=="PAGEBREAK") {
+    else if(x==="PAGEBREAK") {
       form.addPageBreakItem().setTitle(data[i][1]).setHelpText(data[i][2]);
     }
-    else if(x=="HEADER") { //these are stackable, but don't look the greatest
+    else if(x==="HEADER") { //these are stackable, but don't look the greatest
       form.addSectionHeaderItem().setTitle(data[i][1]).setHelpText(data[i][2]);
     }
   }
 }
-function setUpQuestion(question, data, i) {
-  addOptions(question, data, i);
-  addPoints(question, data, i);
+function setUpQuestion(i) {
+  addOptions(i);
+  addPoints(i);
   if(data[i][3]!=='') question.setPoints(data[i][3]);
   if(data[i][4]!=='') question.setFeedbackForCorrect(FormApp.createFeedback().setText(data[i][4]).build());
   if(data[i][5]!=='') question.setFeedbackForIncorrect(FormApp.createFeedback().setText(data[i][5]).build());
 }
-function addOptions(question, data, i) {
+function addOptions(i) {
   const arr = [];
   for(let j=optionStart;j<optionStart+optionLength;j++) {
-    if(ss.getRange(i+1, j+1, 1, 1).getValue()=='') continue;
+    if(ss.getRange(i+1, j+1, 1, 1).getValue()==='') continue;
     if(ss.getRange(i+1, j+1, 1, 1).getBackground()===correctColor) arr.push(question.createChoice(data[i][j], true));
     else arr.push(question.createChoice(data[i][j], false));
   }
   question.setChoices(arr);
 }
-function addPoints(question, data, i) {
+function addPoints(i) {
   if(data[i][3]!=='') question.setPoints(data[i][3]);
 }
