@@ -11,7 +11,7 @@ var dataRange = ss.getDataRange(); //2d array dimensions
 var data = dataRange.getValues(); //2d array with values
 var question; //simplifies methods if this is global
 
-var optionStart = 6; //0-indexed
+var optionStart = 7; //0-indexed
 var optionLength = 10;
 var desRow = 20, desCol = 20;
 var correctColor = "#00ff00"; //default neon green highlight
@@ -47,6 +47,7 @@ function createTemplate() {
   ss.getRange("D3").setValue("Points");
   ss.getRange("E3").setValue("Correct Text");
   ss.getRange("F3").setValue("Incorrect Text");
+  ss.getRange("G3").setValue("Required?");
   let charStart = String.fromCharCode(65+optionStart)+"3"; //3 represents row # (1-indexed)
   let charEnd = String.fromCharCode(65+optionStart+optionLength-1)+"3"; //Have to -1 for some reason? (check later)
   ss.getRange(charStart+":"+charEnd).setValue("OPTION");
@@ -54,9 +55,22 @@ function createTemplate() {
   //Cell logic
   ss.setFrozenColumns(2);
   ss.setFrozenRows(3);
+  const options = ["MC", "CHECKBOX", "SHORTANSWER", "PARAGRAPH", "PAGEBREAK", "HEADER"];
+  const bool = ["TRUE", "FALSE"]; 
+  let req = String.fromCharCode(65+optionStart-1); 
   ss.getRange("A4:A"+curRow).setDataValidation(SpreadsheetApp.newDataValidation()
-    .setAllowInvalid(false).requireValueInList(
-    ["MC", "CHECKBOX", "SHORTANSWER", "PARAGRAPH", "PAGEBREAK", "HEADER"], true).build()) //https://developers.google.com/apps-script/reference/spreadsheet/data-validation-builder#setAllowInvalid(Boolean)
+    .setAllowInvalid(false).requireValueInList(options, true).build()); //https://developers.google.com/apps-script/reference/spreadsheet/data-validation-builder#setAllowInvalid(Boolean)
+  ss.getRange(req+"4:"+req+curRow).setDataValidation(SpreadsheetApp.newDataValidation()
+    .setAllowInvalid(false).requireValueInList(bool, true).build());
+
+  //very "hacky" solution for "locking" cells from being edited
+  ss.getRange("G1").setValue("H1 and H2 are locked");
+  const blank = [""];  
+  ss.getRange("H1:H2").setDataValidation(SpreadsheetApp.newDataValidation()
+    .setAllowInvalid(false).requireValueInList(blank, false).build());
+  const tmp = [ss.getRange("A1").getDisplayValue()];
+  ss.getRange("A1").setDataValidation(SpreadsheetApp.newDataValidation()
+    .setAllowInvalid(false).requireValueInList(tmp, false).build());
 }
 function createForm() {
   let row = dataRange.getNumRows(), col = dataRange.getNumColumns(); //col is never used
@@ -90,20 +104,20 @@ function createForm() {
 
     if(x==='') continue; 
     if(x==="MC") {
-      question = form.addMultipleChoiceItem().setTitle(data[i][1]).setHelpText(data[i][2]).setRequired(true);
+      question = form.addMultipleChoiceItem().setTitle(data[i][1]).setHelpText(data[i][2]).setRequired(data[i][6]);
       setUpQuestion(i);
     }
     else if(x==="CHECKBOX") {
-      question = form.addCheckboxItem().setTitle(data[i][1]).setHelpText(data[i][2]).setRequired(true);
+      question = form.addCheckboxItem().setTitle(data[i][1]).setHelpText(data[i][2]).setRequired(data[i][6]);
       setUpQuestion(i);
     }
     // You can set point values for short responses, but how does it work logisticially?
     else if(x==="SHORTANSWER") {
-      question = form.addTextItem().setTitle(data[i][1]).setHelpText(data[i][2]).setRequired(true);
+      question = form.addTextItem().setTitle(data[i][1]).setHelpText(data[i][2]).setRequired(data[i][6]);
       addPoints(i);
     }
     else if(x==="PARAGRAPH") {
-      question = form.addParagraphTextItem().setTitle(data[i][1]).setHelpText(data[i][2]).setRequired(true);
+      question = form.addParagraphTextItem().setTitle(data[i][1]).setHelpText(data[i][2]).setRequired(data[i][6]);
       addPoints(i);
     }
     else if(x==="PAGEBREAK") {
