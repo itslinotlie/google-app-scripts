@@ -11,7 +11,7 @@ var dataRange = ss.getDataRange(); //2d array dimensions
 var data = dataRange.getValues(); //2d array with values
 var question; //simplifies methods if this is global
 
-var headerSize = 3;
+var headerSize = 4;
 var optionStart = 8; //0-indexed
 var optionLength = 10;
 var desRow = 20, desCol = 20;
@@ -21,13 +21,11 @@ const options = ["MC", "CHECKBOX", "SHORTANSWER", "PARAGRAPH", "PAGEBREAK", "HEA
 const bool = ["TRUE", "FALSE"]; 
 
 function onOpen() {
-  let menu = SpreadsheetApp.getUi().createMenu("Forms");
+  let menu = ss.getUi().createMenu("Forms");
   menu.addItem("Initilize Spreadsheet", "createTemplate").addToUi();
   menu.addItem("Create Google Form", "createForm").addToUi();
 }
 function createTemplate() {
-  ss.clear();
-
   //setting up spreadsheet dimensions
   let curRow = ss.getMaxRows(), curCol = ss.getMaxColumns();
   if(curRow!==desRow) //Exception: Invalid argument is thrown if you .inserRowsAfter(X, 0)
@@ -36,35 +34,40 @@ function createTemplate() {
     curCol>desCol? ss.deleteColumns(desCol+1, curCol-desCol):ss.insertColumnsAfter(curCol-1, desCol-curCol);
   curRow = ss.getMaxRows(); curCol = ss.getMaxColumns();
 
+  ss.clear();
+  ss.getRange(1, 1, desRow, desCol).setDataValidation(null); //clears data formatting so you dont need to create a new sheet
+
   //predefined-info
   let req = String.fromCharCode(65+optionStart-1); 
-  let optStart = String.fromCharCode(65+optionStart)+"3"; //3 represents row # (1-indexed)
-  let optEnd = String.fromCharCode(65+optionStart+optionLength-1)+"3"; //Have to -1 for some reason? (check later)
+  let optStart = String.fromCharCode(65+optionStart)+headerSize; //3 represents row # (1-indexed)
+  let optEnd = String.fromCharCode(65+optionStart+optionLength-1)+headerSize; //Have to -1 for some reason? (check later)
 
   ss.getRange("A1").setValue("Form Title:");
   ss.getRange("A2").setValue("Form Desciption:");
   ss.getRange("C1").setValue("Folder ID:");
   //delete the following line if you plan on copying this file
   ss.getRange("D1").setValue("1D2yMTtKfq9ey5awuTbEiHXViCHDYgejH"); //delete when in production
-  ss.getRange("E1").setValue("Public URL:");
-  ss.getRange("E2").setValue("Private URL:");
+  ss.getRange("C2").setValue("Public URL:");
+  ss.getRange("C3").setValue("Private URL:");
 
-  ss.getRange("A3").setValue("Question Type");
-  ss.getRange("B3").setValue("Question");
-  ss.getRange("C3").setValue("Instructions");
-  ss.getRange("D3").setValue("Points");
-  ss.getRange("E3").setValue("Correct Text");
-  ss.getRange("F3").setValue("Incorrect Text");
-  ss.getRange("G3").setValue("URL/ID");
-  ss.getRange(req+"3").setValue("Required?");
+  ss.getRange("D:D").setWrapStrategy(SpreadsheetApp.WrapStrategy.CLIP);
+
+  ss.getRange("A"+headerSize).setValue("Question Type");
+  ss.getRange("B"+headerSize).setValue("Question");
+  ss.getRange("C"+headerSize).setValue("Instructions");
+  ss.getRange("D"+headerSize).setValue("Points");
+  ss.getRange("E"+headerSize).setValue("Correct Text");
+  ss.getRange("F"+headerSize).setValue("Incorrect Text");
+  ss.getRange("G"+headerSize).setValue("URL/ID");
+  ss.getRange(req+headerSize).setValue("Required?");
   ss.getRange(optStart+":"+optEnd).setValue("OPTION");
 
   //Cell logic
   ss.setFrozenColumns(2);
-  ss.setFrozenRows(3);
-  ss.getRange("A4:A"+curRow).setDataValidation(SpreadsheetApp.newDataValidation()
+  ss.setFrozenRows(headerSize);
+  ss.getRange("A"+(headerSize+1)+":A"+curRow).setDataValidation(SpreadsheetApp.newDataValidation()
     .setAllowInvalid(false).requireValueInList(options, true).build()); //https://developers.google.com/apps-script/reference/spreadsheet/data-validation-builder#setAllowInvalid(Boolean)
-  ss.getRange(req+"4:"+req+curRow).setDataValidation(SpreadsheetApp.newDataValidation()
+  ss.getRange(req+(headerSize+1)+":"+curRow+req).setDataValidation(SpreadsheetApp.newDataValidation()
     .setAllowInvalid(false).requireValueInList(bool, true).build());
 
   //very "hacky" solution for "locking" cells from being edited
@@ -77,24 +80,24 @@ function createTemplate() {
     .setAllowInvalid(false).requireValueInList(tmp, false).build());
 }
 function createForm() {
-  let row = dataRange.getNumRows(), col = dataRange.getNumColumns(); //col is never used
+  let row = dataRange.getNumRows();
 
   //setting form info to spreadsheet
   let publicUrl = form.getPublishedUrl();
   let privateUrl = form.getEditUrl();
-  ss.getRange("F1").setValue(publicUrl);
-  ss.getRange("F2").setValue(privateUrl);
+  ss.getRange("D2").setValue(publicUrl);
+  ss.getRange("D3").setValue(privateUrl);
 
-  //moving form to the folder (if possible)
   let formID = form.getId();
   let file = DriveApp.getFileById(formID);
+  //moving form to the folder (if possible)
   if(data[0][3]!=='') {
     let folder = DriveApp.getFolderById(data[0][3]);
     file.moveTo(folder);
   }
-  if(data[0][1]!=='') file.setName(data[0][1]);
 
   //filling in form info
+  file.setName(data[0][1]);
   form.setTitle(data[0][1]);
   form.setDescription(data[1][1]);
   form.setIsQuiz(true); //https://developers.google.com/apps-script/reference/forms/form#setisquizenabled
@@ -115,36 +118,30 @@ function createForm() {
     else if(x==="PARAGRAPH") question = form.addParagraphTextItem();
     else if(x==="PAGEBREAK") question = form.addPageBreakItem();
     else if(x==="HEADER") question = form.addSectionHeaderItem(); //these are stackable, but don't look the greatest
-    else if(x==="IMAGE") { //imageItem's helptext dont show in Forms
-      question = form.addImageItem().setImage(UrlFetchApp.fetch(data[i][6]));
-      formatVisual();
-    }
-    else if(x==="IMAGE-DRIVE") {
-      question = form.addImageItem().setImage(DriveApp.getFileById(data[i][6]));
-      formatVisual();
-    }
-    else if(x==="VIDEO") {
-      question = form.addVideoItem().setVideoUrl(data[i][6]);
-      formatVisual();
-    }
+    else if(x==="IMAGE") question = form.addImageItem().setImage(UrlFetchApp.fetch(data[i][6])); //imageItem's helptext dont show in Forms
+    else if(x==="IMAGE-DRIVE") question = form.addImageItem().setImage(DriveApp.getFileById(data[i][6]));
+    else if(x==="VIDEO") question = form.addVideoItem().setVideoUrl(data[i][6]);
     setUpQuestion(i);
   }
 }
-const invalid = [FormApp.ItemType.PAGE_BREAK, FormApp.ItemType.SECTION_HEADER,
-  FormApp.ItemType.IMAGE, FormApp.ItemType.VIDEO];
-const choices = [FormApp.ItemType.CHECKBOX, FormApp.ItemType.MULTIPLE_CHOICE]
+const choices = [FormApp.ItemType.CHECKBOX, FormApp.ItemType.MULTIPLE_CHOICE];
+const visual = [FormApp.ItemType.IMAGE, FormApp.ItemType.VIDEO];
+const invalid = [
+  FormApp.ItemType.PAGE_BREAK, FormApp.ItemType.SECTION_HEADER, 
+  FormApp.ItemType.IMAGE, FormApp.ItemType.VIDEO
+];
 function setUpQuestion(i) {
   if(data[i][1]!=='') question.setTitle(data[i][1]);
   if(data[i][2]!=='') question.setHelpText(data[i][2]);
 
-  // invalid.forEach(e => { //unsure why forEach loop doesn't work
-  //   if(question.getType()===e) return;
-  // })
-  for (let j=0;j<invalid.length;j++) {  
-    if(question.getType()===invalid[j]) return;
-  }
-  for (let j=0;j<choices.length;j++) {
+  for (let j=0;j<choices.length;j++) { //only certain item types can add options
     if(question.getType()===choices[j]) addOptions(i);
+  }
+  for (let j=0;j<visual.length;j++) { //only vertian item types can be visually formatted
+    if(question.getType()===visual[j]) formatVisual();
+  }
+  for (let j=0;j<invalid.length;j++) { //makes sure invalid item types end here  
+    if(question.getType()===invalid[j]) return;
   }
   if(data[i][3]!=='') question.setPoints(data[i][3]);
   if(data[i][4]!=='') question.setFeedbackForCorrect(FormApp.createFeedback().setText(data[i][4]).build());
