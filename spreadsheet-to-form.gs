@@ -34,6 +34,7 @@ function createTemplate() {
     curCol>desCol? ss.deleteColumns(desCol+1, curCol-desCol):ss.insertColumnsAfter(curCol-1, desCol-curCol);
   curRow = ss.getMaxRows(); curCol = ss.getMaxColumns();
 
+  //resize cell dimensions to default later
   ss.clear();
   ss.getRange(1, 1, desRow, desCol).setDataValidation(null); //clears data formatting so you dont need to create a new sheet
 
@@ -42,16 +43,26 @@ function createTemplate() {
   let optStart = String.fromCharCode(65+optionStart)+headerSize; //3 represents row # (1-indexed)
   let optEnd = String.fromCharCode(65+optionStart+optionLength-1)+headerSize; //Have to -1 for some reason? (check later)
 
+  //info to fill in/use
   ss.getRange("A1").setValue("Form Title:");
   ss.getRange("A2").setValue("Form Desciption:");
+  ss.getRange("A3").setValue("Highlight Color"); 
+  ss.getRange("B3").setBackground("#00ff00");
   ss.getRange("C1").setValue("Folder ID:");
   //delete the following line if you plan on copying this file
   ss.getRange("D1").setValue("1D2yMTtKfq9ey5awuTbEiHXViCHDYgejH"); //delete when in production
   ss.getRange("C2").setValue("Public URL:");
   ss.getRange("C3").setValue("Private URL:");
 
-  ss.getRange("D:D").setWrapStrategy(SpreadsheetApp.WrapStrategy.CLIP);
+  //various boolean fields
+  ss.getRange("E1").setValue("One Response per User?");
+  ss.getRange("E2").setValue("Can Edit Response?");
+  ss.getRange("E3").setValue("Collects Email?");
+  ss.getRange("G1").setValue("Progress Bar?");
+  ss.getRange("G2").setValue("Link to Respond Again?"); //test to see difference between this and one response per user
+  ss.getRange("G3").setValue("Publishing Summary?");  
 
+  //question headers
   ss.getRange("A"+headerSize).setValue("Question Type");
   ss.getRange("B"+headerSize).setValue("Question");
   ss.getRange("C"+headerSize).setValue("Instructions");
@@ -62,22 +73,36 @@ function createTemplate() {
   ss.getRange(req+headerSize).setValue("Required?");
   ss.getRange(optStart+":"+optEnd).setValue("OPTION");
 
-  //Cell logic
+  //formatting
+  ss.getRange("4:4").setHorizontalAlignment("center");
+  ss.setColumnWidth(5, 200);
+  ss.setColumnWidth(7, 200);
+
+  //cell logic
+  ss.getRange("D:D").setWrapStrategy(SpreadsheetApp.WrapStrategy.CLIP);
+
   ss.setFrozenColumns(2);
   ss.setFrozenRows(headerSize);
+  //booleans
+  ss.getRange("F1:F3").setDataValidation(SpreadsheetApp.newDataValidation()
+    .setAllowInvalid(false).requireValueInList(bool, true).build());
+  ss.getRange("H1:H3").setDataValidation(SpreadsheetApp.newDataValidation()
+    .setAllowInvalid(false).requireValueInList(bool, true).build());
+    //Question Type
   ss.getRange("A"+(headerSize+1)+":A"+curRow).setDataValidation(SpreadsheetApp.newDataValidation()
     .setAllowInvalid(false).requireValueInList(options, true).build()); //https://developers.google.com/apps-script/reference/spreadsheet/data-validation-builder#setAllowInvalid(Boolean)
-  ss.getRange(req+(headerSize+1)+":"+curRow+req).setDataValidation(SpreadsheetApp.newDataValidation()
+  //Required?
+  ss.getRange(req+(headerSize+1)+":"+req+curRow).setDataValidation(SpreadsheetApp.newDataValidation()
     .setAllowInvalid(false).requireValueInList(bool, true).build());
 
   //very "hacky" solution for "locking" cells from being edited
-  ss.getRange("G1").setValue("H1 and H2 are locked");
-  const blank = [""];  
-  ss.getRange("H1:H2").setDataValidation(SpreadsheetApp.newDataValidation()
-    .setAllowInvalid(false).requireValueInList(blank, false).build());
-  const tmp = [ss.getRange("A1").getDisplayValue()];
-  ss.getRange("A1").setDataValidation(SpreadsheetApp.newDataValidation()
-    .setAllowInvalid(false).requireValueInList(tmp, false).build());
+  // ss.getRange("G1").setValue("H1 and H2 are locked");
+  // const blank = [""];  
+  // ss.getRange("H1:H2").setDataValidation(SpreadsheetApp.newDataValidation()
+  //   .setAllowInvalid(false).requireValueInList(blank, false).build());
+  // const tmp = [ss.getRange("A1").getDisplayValue()];
+  // ss.getRange("A1").setDataValidation(SpreadsheetApp.newDataValidation()
+  //   .setAllowInvalid(false).requireValueInList(tmp, false).build());
 }
 function createForm() {
   let row = dataRange.getNumRows();
@@ -101,6 +126,15 @@ function createForm() {
   form.setTitle(data[0][1]);
   form.setDescription(data[1][1]);
   form.setIsQuiz(true); //https://developers.google.com/apps-script/reference/forms/form#setisquizenabled
+
+  //boolean info
+  correctColor = ss.getRange("B3").getBackground();
+  if(data[0][5]!=='') form.setLimitOneResponsePerUser(data[0][5]);
+  if(data[1][5]!=='') form.setAllowResponseEdits(data[1][5]);
+  if(data[2][5]!=='') form.setCollectEmail(data[2][5]); //reveals email address at the top of the form, allows you to send a copy to yourself at the bottom
+  if(data[0][7]!=='') form.setProgressBar(data[0][7]);
+  if(data[1][7]!=='') form.setShowLinkToRespondAgain(data[1][7]);
+  if(data[2][7]!=='') form.setPublishingSummary(data[2][7]);
 
   //To ADD:
   /*
