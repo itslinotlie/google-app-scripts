@@ -11,10 +11,14 @@ var dataRange = ss.getDataRange(); //2d array dimensions
 var data = dataRange.getValues(); //2d array with values
 var question; //simplifies methods if this is global
 
-var optionStart = 7; //0-indexed
+var headerSize = 3;
+var optionStart = 8; //0-indexed
 var optionLength = 10;
 var desRow = 20, desCol = 20;
 var correctColor = "#00ff00"; //default neon green highlight
+
+const options = ["MC", "CHECKBOX", "SHORTANSWER", "PARAGRAPH", "PAGEBREAK", "HEADER", "IMAGE", "IMAGE-DRIVE", "VIDEO"];
+const bool = ["TRUE", "FALSE"]; 
 
 function onOpen() {
   let menu = SpreadsheetApp.getUi().createMenu("Forms");
@@ -22,7 +26,7 @@ function onOpen() {
   menu.addItem("Create Google Form", "createForm").addToUi();
 }
 function createTemplate() {
-  ss.clearContents(); ss.clearFormats();
+  ss.clear();
 
   //setting up spreadsheet dimensions
   let curRow = ss.getMaxRows(), curCol = ss.getMaxColumns();
@@ -33,6 +37,10 @@ function createTemplate() {
   curRow = ss.getMaxRows(); curCol = ss.getMaxColumns();
 
   //predefined-info
+  let req = String.fromCharCode(65+optionStart-1); 
+  let optStart = String.fromCharCode(65+optionStart)+"3"; //3 represents row # (1-indexed)
+  let optEnd = String.fromCharCode(65+optionStart+optionLength-1)+"3"; //Have to -1 for some reason? (check later)
+
   ss.getRange("A1").setValue("Form Title:");
   ss.getRange("A2").setValue("Form Desciption:");
   ss.getRange("C1").setValue("Folder ID:");
@@ -47,17 +55,13 @@ function createTemplate() {
   ss.getRange("D3").setValue("Points");
   ss.getRange("E3").setValue("Correct Text");
   ss.getRange("F3").setValue("Incorrect Text");
-  ss.getRange("G3").setValue("Required?");
-  let charStart = String.fromCharCode(65+optionStart)+"3"; //3 represents row # (1-indexed)
-  let charEnd = String.fromCharCode(65+optionStart+optionLength-1)+"3"; //Have to -1 for some reason? (check later)
-  ss.getRange(charStart+":"+charEnd).setValue("OPTION");
+  ss.getRange("G3").setValue("URL/ID");
+  ss.getRange(req+"3").setValue("Required?");
+  ss.getRange(optStart+":"+optEnd).setValue("OPTION");
 
   //Cell logic
   ss.setFrozenColumns(2);
   ss.setFrozenRows(3);
-  const options = ["MC", "CHECKBOX", "SHORTANSWER", "PARAGRAPH", "PAGEBREAK", "HEADER"];
-  const bool = ["TRUE", "FALSE"]; 
-  let req = String.fromCharCode(65+optionStart-1); 
   ss.getRange("A4:A"+curRow).setDataValidation(SpreadsheetApp.newDataValidation()
     .setAllowInvalid(false).requireValueInList(options, true).build()); //https://developers.google.com/apps-script/reference/spreadsheet/data-validation-builder#setAllowInvalid(Boolean)
   ss.getRange(req+"4:"+req+curRow).setDataValidation(SpreadsheetApp.newDataValidation()
@@ -81,11 +85,14 @@ function createForm() {
   ss.getRange("F1").setValue(publicUrl);
   ss.getRange("F2").setValue(privateUrl);
 
-  //moving form to the folder
-  let folder = DriveApp.getFolderById(data[0][3]);
+  //moving form to the folder (if possible)
   let formID = form.getId();
   let file = DriveApp.getFileById(formID);
-  file.moveTo(folder);
+  if(data[0][3]!=='') {
+    let folder = DriveApp.getFolderById(data[0][3]);
+    file.moveTo(folder);
+  }
+  if(data[0][1]!=='') file.setName(data[0][1]);
 
   //filling in form info
   form.setTitle(data[0][1]);
@@ -99,41 +106,50 @@ function createForm() {
   - allow user to pick color for right answer (i.e. place highlight color in this cell)
   */
 
-  for (let i=0;i<row;i++) {
+  for (let i=headerSize;i<row;i++) {
     let x = data[i][0]; 
-
     if(x==='') continue; 
-    if(x==="MC") {
-      question = form.addMultipleChoiceItem().setTitle(data[i][1]).setHelpText(data[i][2]).setRequired(data[i][6]);
-      setUpQuestion(i);
+    if(x==="MC") question = form.addMultipleChoiceItem();
+    else if(x==="CHECKBOX") question = form.addCheckboxItem();
+    else if(x==="SHORTANSWER") question = form.addTextItem(); //how do points work with short responses...
+    else if(x==="PARAGRAPH") question = form.addParagraphTextItem();
+    else if(x==="PAGEBREAK") question = form.addPageBreakItem();
+    else if(x==="HEADER") question = form.addSectionHeaderItem(); //these are stackable, but don't look the greatest
+    else if(x==="IMAGE") { //imageItem's helptext dont show in Forms
+      question = form.addImageItem().setImage(UrlFetchApp.fetch(data[i][6]));
+      formatVisual();
     }
-    else if(x==="CHECKBOX") {
-      question = form.addCheckboxItem().setTitle(data[i][1]).setHelpText(data[i][2]).setRequired(data[i][6]);
-      setUpQuestion(i);
+    else if(x==="IMAGE-DRIVE") {
+      question = form.addImageItem().setImage(DriveApp.getFileById(data[i][6]));
+      formatVisual();
     }
-    // You can set point values for short responses, but how does it work logisticially?
-    else if(x==="SHORTANSWER") {
-      question = form.addTextItem().setTitle(data[i][1]).setHelpText(data[i][2]).setRequired(data[i][6]);
-      addPoints(i);
+    else if(x==="VIDEO") {
+      question = form.addVideoItem().setVideoUrl(data[i][6]);
+      formatVisual();
     }
-    else if(x==="PARAGRAPH") {
-      question = form.addParagraphTextItem().setTitle(data[i][1]).setHelpText(data[i][2]).setRequired(data[i][6]);
-      addPoints(i);
-    }
-    else if(x==="PAGEBREAK") {
-      form.addPageBreakItem().setTitle(data[i][1]).setHelpText(data[i][2]);
-    }
-    else if(x==="HEADER") { //these are stackable, but don't look the greatest
-      form.addSectionHeaderItem().setTitle(data[i][1]).setHelpText(data[i][2]);
-    }
+    setUpQuestion(i);
   }
 }
+const invalid = [FormApp.ItemType.PAGE_BREAK, FormApp.ItemType.SECTION_HEADER,
+  FormApp.ItemType.IMAGE, FormApp.ItemType.VIDEO];
+const choices = [FormApp.ItemType.CHECKBOX, FormApp.ItemType.MULTIPLE_CHOICE]
 function setUpQuestion(i) {
-  addOptions(i);
-  addPoints(i);
+  if(data[i][1]!=='') question.setTitle(data[i][1]);
+  if(data[i][2]!=='') question.setHelpText(data[i][2]);
+
+  // invalid.forEach(e => { //unsure why forEach loop doesn't work
+  //   if(question.getType()===e) return;
+  // })
+  for (let j=0;j<invalid.length;j++) {  
+    if(question.getType()===invalid[j]) return;
+  }
+  for (let j=0;j<choices.length;j++) {
+    if(question.getType()===choices[j]) addOptions(i);
+  }
   if(data[i][3]!=='') question.setPoints(data[i][3]);
   if(data[i][4]!=='') question.setFeedbackForCorrect(FormApp.createFeedback().setText(data[i][4]).build());
   if(data[i][5]!=='') question.setFeedbackForIncorrect(FormApp.createFeedback().setText(data[i][5]).build());
+  if(data[i][optionStart-1]!=='') question.setRequired(data[i][optionStart-1]);
 }
 function addOptions(i) {
   const arr = [];
@@ -144,6 +160,6 @@ function addOptions(i) {
   }
   question.setChoices(arr);
 }
-function addPoints(i) {
-  if(data[i][3]!=='') question.setPoints(data[i][3]);
+function formatVisual() {
+  question.setAlignment(FormApp.Alignment.CENTER).setWidth(600);
 }
