@@ -5,11 +5,11 @@ General knowledge:
 */
 //global variables
 var ss = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet(); //getActiveSheet() == current sheet opened in the spreadsheet
-var form = FormApp.create("Untitled form"); //had to be initialized
 
+//simplifies methods if these 3 are global
 var dataRange = ss.getDataRange(); //2d array dimensions
 var data = dataRange.getValues(); //2d array with values
-var question; //simplifies methods if this is global
+var question; 
 
 var headerSize = 4;
 var optionStart = 8; //0-indexed
@@ -17,11 +17,8 @@ var optionLength = 10;
 var desRow = 20, desCol = 20;
 var correctColor = "#00ff00"; //default neon green highlight
 
-const options = ["MC", "CHECKBOX", "SHORTANSWER", "PARAGRAPH", "PAGEBREAK", "HEADER", "IMAGE", "IMAGE-DRIVE", "VIDEO"];
-const bool = ["TRUE", "FALSE"]; 
-
 function onOpen() {
-  let menu = ss.getUi().createMenu("Forms");
+  let menu = SpreadsheetApp.getUi().createMenu("Forms");
   menu.addItem("Initilize Spreadsheet", "createTemplate").addToUi();
   menu.addItem("Create Google Form", "createForm").addToUi();
 }
@@ -34,14 +31,9 @@ function createTemplate() {
     curCol>desCol? ss.deleteColumns(desCol+1, curCol-desCol):ss.insertColumnsAfter(curCol-1, desCol-curCol);
   curRow = ss.getMaxRows(); curCol = ss.getMaxColumns();
 
-  //resize cell dimensions to default later
-  ss.clear();
+  ss.clear(); //clears formatting
+  ss.setRowHeights(1, curRow, 21); ss.setColumnWidths(1, curCol, 100); //resize cells to default size
   ss.getRange(1, 1, desRow, desCol).setDataValidation(null); //clears data formatting so you dont need to create a new sheet
-
-  //predefined-info
-  let req = String.fromCharCode(65+optionStart-1); 
-  let optStart = String.fromCharCode(65+optionStart)+headerSize; //3 represents row # (1-indexed)
-  let optEnd = String.fromCharCode(65+optionStart+optionLength-1)+headerSize; //Have to -1 for some reason? (check later)
 
   //info to fill in/use
   ss.getRange("A1").setValue("Form Title:");
@@ -63,6 +55,10 @@ function createTemplate() {
   ss.getRange("G3").setValue("Publishing Summary?");  
 
   //question headers
+  let charReq = String.fromCharCode(65+optionStart-1); 
+  let optStart = String.fromCharCode(65+optionStart)+headerSize; //3 represents row # (1-indexed)
+  let optEnd = String.fromCharCode(65+optionStart+optionLength-1)+headerSize; //Have to -1 for some reason? (check later)
+
   ss.getRange("A"+headerSize).setValue("Question Type");
   ss.getRange("B"+headerSize).setValue("Question");
   ss.getRange("C"+headerSize).setValue("Instructions");
@@ -70,30 +66,24 @@ function createTemplate() {
   ss.getRange("E"+headerSize).setValue("Correct Text");
   ss.getRange("F"+headerSize).setValue("Incorrect Text");
   ss.getRange("G"+headerSize).setValue("URL/ID");
-  ss.getRange(req+headerSize).setValue("Required?");
+  ss.getRange(charReq+headerSize).setValue("Required?");
   ss.getRange(optStart+":"+optEnd).setValue("OPTION");
 
   //formatting
   ss.getRange("4:4").setHorizontalAlignment("center");
+  ss.setFrozenRows(headerSize); 
+  ss.setFrozenColumns(2);
   ss.setColumnWidth(5, 200);
   ss.setColumnWidth(7, 200);
+  ss.getRange("D1:D3").setWrapStrategy(SpreadsheetApp.WrapStrategy.CLIP);
 
-  //cell logic
-  ss.getRange("D:D").setWrapStrategy(SpreadsheetApp.WrapStrategy.CLIP);
-
-  ss.setFrozenColumns(2);
-  ss.setFrozenRows(headerSize);
-  //booleans
-  ss.getRange("F1:F3").setDataValidation(SpreadsheetApp.newDataValidation()
-    .setAllowInvalid(false).requireValueInList(bool, true).build());
-  ss.getRange("H1:H3").setDataValidation(SpreadsheetApp.newDataValidation()
-    .setAllowInvalid(false).requireValueInList(bool, true).build());
-    //Question Type
-  ss.getRange("A"+(headerSize+1)+":A"+curRow).setDataValidation(SpreadsheetApp.newDataValidation()
-    .setAllowInvalid(false).requireValueInList(options, true).build()); //https://developers.google.com/apps-script/reference/spreadsheet/data-validation-builder#setAllowInvalid(Boolean)
-  //Required?
-  ss.getRange(req+(headerSize+1)+":"+req+curRow).setDataValidation(SpreadsheetApp.newDataValidation()
-    .setAllowInvalid(false).requireValueInList(bool, true).build());
+  //data validation //https://developers.google.com/apps-script/reference/spreadsheet/data-validation-builder#setAllowInvalid
+  const options = ["MC", "CHECKBOX", "SHORTANSWER", "PARAGRAPH", "PAGEBREAK", "HEADER", "IMAGE", "IMAGE-DRIVE", "VIDEO"];
+  const bool = ["TRUE", "FALSE"]; 
+  setValidation("F1:F3", bool); //boolean questions
+  setValidation("H1:H3", bool);
+  setValidation("A"+(headerSize+1)+":A"+curRow, options); //question type
+  setValidation(charReq+(headerSize+1)+":"+charReq+curRow, bool); //required?
 
   //very "hacky" solution for "locking" cells from being edited
   // ss.getRange("G1").setValue("H1 and H2 are locked");
@@ -104,8 +94,15 @@ function createTemplate() {
   // ss.getRange("A1").setDataValidation(SpreadsheetApp.newDataValidation()
   //   .setAllowInvalid(false).requireValueInList(tmp, false).build());
 }
+function setValidation(range, list) {
+  ss.getRange(range).setDataValidation(SpreadsheetApp.newDataValidation()
+    .setAllowInvalid(false).requireValueInList(list, true).build());
+}
 function createForm() {
   let row = dataRange.getNumRows();
+  var form = FormApp.create("Untitled form"); //has to be initialized
+  let formID = form.getId();
+  let file = DriveApp.getFileById(formID);
 
   //setting form info to spreadsheet
   let publicUrl = form.getPublishedUrl();
@@ -113,8 +110,6 @@ function createForm() {
   ss.getRange("D2").setValue(publicUrl);
   ss.getRange("D3").setValue(privateUrl);
 
-  let formID = form.getId();
-  let file = DriveApp.getFileById(formID);
   //moving form to the folder (if possible)
   if(data[0][3]!=='') {
     let folder = DriveApp.getFolderById(data[0][3]);
@@ -134,14 +129,7 @@ function createForm() {
   if(data[2][5]!=='') form.setCollectEmail(data[2][5]); //reveals email address at the top of the form, allows you to send a copy to yourself at the bottom
   if(data[0][7]!=='') form.setProgressBar(data[0][7]);
   if(data[1][7]!=='') form.setShowLinkToRespondAgain(data[1][7]);
-  if(data[2][7]!=='') form.setPublishingSummary(data[2][7]);
-
-  //To ADD:
-  /*
-  - one sub per person
-  - option for required or not
-  - allow user to pick color for right answer (i.e. place highlight color in this cell)
-  */
+  if(data[2][7]!=='') form.setPublishingSummary(data[2][7]); //reveals question distribution, but no answers
 
   for (let i=headerSize;i<row;i++) {
     let x = data[i][0]; 
