@@ -56,8 +56,8 @@ function createTemplate() {
 
   //question headers
   let charReq = String.fromCharCode(65+optionStart-1); 
-  let optStart = String.fromCharCode(65+optionStart)+headerSize; //3 represents row # (1-indexed)
-  let optEnd = String.fromCharCode(65+optionStart+optionLength-1)+headerSize; //Have to -1 for some reason? (check later)
+  let optStart = String.fromCharCode(65+optionStart); //3 represents row # (1-indexed)
+  let optEnd = String.fromCharCode(65+optionStart+optionLength-1); //Have to -1 for some reason? (check later)
 
   ss.getRange("A"+headerSize).setValue("Question Type");
   ss.getRange("B"+headerSize).setValue("Question");
@@ -67,15 +67,23 @@ function createTemplate() {
   ss.getRange("F"+headerSize).setValue("Incorrect Text");
   ss.getRange("G"+headerSize).setValue("URL/ID");
   ss.getRange(charReq+headerSize).setValue("Required?");
-  ss.getRange(optStart+":"+optEnd).setValue("OPTION");
+  ss.getRange(optStart+headerSize+":"+optEnd+headerSize).setValue("OPTION");
 
   //formatting
   ss.getRange("4:4").setHorizontalAlignment("center");
   ss.setFrozenRows(headerSize); 
-  ss.setFrozenColumns(2);
+  ss.setFrozenColumns(4);
+  ss.setColumnWidth(2, 200);
+  ss.setColumnWidth(3, 200);
   ss.setColumnWidth(5, 200);
+  ss.setColumnWidth(6, 200);
   ss.setColumnWidth(7, 200);
-  ss.getRange("D1:D3").setWrapStrategy(SpreadsheetApp.WrapStrategy.CLIP);
+
+  setStrategy("B1:B"+curRow, "WRAP");
+  setStrategy("C"+(headerSize+1)+":C"+curRow, "WARP");
+  setStrategy("D1:D3", "CLIP");
+  setStrategy("E"+(headerSize+1)+":F"+curRow, "WRAP");
+  setStrategy(optStart+(headerSize+1)+":"+optEnd+curRow, "WRAP");
 
   //data validation //https://developers.google.com/apps-script/reference/spreadsheet/data-validation-builder#setAllowInvalid
   const options = ["MC", "CHECKBOX", "SHORTANSWER", "PARAGRAPH", "PAGEBREAK", "HEADER", "IMAGE", "IMAGE-DRIVE", "VIDEO"];
@@ -93,6 +101,12 @@ function createTemplate() {
   // const tmp = [ss.getRange("A1").getDisplayValue()];
   // ss.getRange("A1").setDataValidation(SpreadsheetApp.newDataValidation()
   //   .setAllowInvalid(false).requireValueInList(tmp, false).build());
+}
+function setStrategy(range, type) {
+  let strat = SpreadsheetApp.WrapStrategy.WRAP;
+  if(type==="WRAP") strat = SpreadsheetApp.WrapStrategy.WRAP;
+  else if(type==="CLIP") strat = SpreadsheetApp.WrapStrategy.CLIP;
+  ss.getRange(range).setWrapStrategy(strat);
 }
 function setValidation(range, list) {
   ss.getRange(range).setDataValidation(SpreadsheetApp.newDataValidation()
