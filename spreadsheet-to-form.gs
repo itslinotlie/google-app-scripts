@@ -1,8 +1,3 @@
-/*
-General knowledge:
-- Arrays are 0-indexed
-- ss.getRange(row, col, numRow, numCol) is 1-indexed
-*/
 //global variables
 var ss = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet(); //getActiveSheet() == current sheet opened in the spreadsheet
 
@@ -12,8 +7,8 @@ var data = dataRange.getValues(); //2d array with values
 var question; 
 
 var headerSize = 4;
-var optionStart = 8; //0-indexed
-var optionLength = 10;
+var optionStart = 9; //0-indexed
+var optionLength = 10; //adjust this value accordingly if you need more options (make sure to change desRow to a larger value then)
 var desRow = 20, desCol = 20;
 var correctColor = "#00ff00"; //default neon green highlight
 
@@ -56,6 +51,7 @@ function createTemplate() {
 
   //question headers
   let charReq = String.fromCharCode(65+optionStart-1); 
+  let charOther = String.fromCharCode(65+optionStart-2);
   let optStart = String.fromCharCode(65+optionStart); //3 represents row # (1-indexed)
   let optEnd = String.fromCharCode(65+optionStart+optionLength-1); //Have to -1 for some reason? (check later)
 
@@ -66,6 +62,7 @@ function createTemplate() {
   ss.getRange("E"+headerSize).setValue("Correct Text");
   ss.getRange("F"+headerSize).setValue("Incorrect Text");
   ss.getRange("G"+headerSize).setValue("URL/ID");
+  ss.getRange(charOther+headerSize).setValue("Other?");
   ss.getRange(charReq+headerSize).setValue("Required?");
   ss.getRange(optStart+headerSize+":"+optEnd+headerSize).setValue("OPTION");
 
@@ -79,9 +76,15 @@ function createTemplate() {
   ss.setColumnWidth(6, 200);
   ss.setColumnWidth(7, 200);
 
-  setStrategy("B1:B"+curRow, "WRAP");
-  setStrategy("C"+(headerSize+1)+":C"+curRow, "WARP");
+  //header formatting
+  setStrategy("B1:C"+curRow, "WRAP");
+  setStrategy("D1:D"+curRow, "VCENTER");
   setStrategy("D1:D3", "CLIP");
+
+  //other formatting
+  setStrategy("A"+(headerSize+1)+":"+optEnd+curRow, "VTOP");
+  setStrategy("D"+(headerSize+1)+":D"+curRow, "HCENTER");
+  setStrategy("D"+(headerSize+1)+":D"+curRow, "VCENTER");
   setStrategy("E"+(headerSize+1)+":F"+curRow, "WRAP");
   setStrategy(optStart+(headerSize+1)+":"+optEnd+curRow, "WRAP");
 
@@ -91,6 +94,7 @@ function createTemplate() {
   setValidation("F1:F3", bool); //boolean questions
   setValidation("H1:H3", bool);
   setValidation("A"+(headerSize+1)+":A"+curRow, options); //question type
+  setValidation(charOther+(headerSize+1)+":"+charOther+curRow, bool); //other?
   setValidation(charReq+(headerSize+1)+":"+charReq+curRow, bool); //required?
 
   //very "hacky" solution for "locking" cells from being edited
@@ -103,10 +107,12 @@ function createTemplate() {
   //   .setAllowInvalid(false).requireValueInList(tmp, false).build());
 }
 function setStrategy(range, type) {
-  let strat = SpreadsheetApp.WrapStrategy.WRAP;
-  if(type==="WRAP") strat = SpreadsheetApp.WrapStrategy.WRAP;
-  else if(type==="CLIP") strat = SpreadsheetApp.WrapStrategy.CLIP;
-  ss.getRange(range).setWrapStrategy(strat);
+  let strat;
+  if(type==="WRAP") ss.getRange(range).setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP);
+  else if(type==="CLIP") ss.getRange(range).setWrapStrategy(SpreadsheetApp.WrapStrategy.CLIP);
+  else if(type=="VTOP") ss.getRange(range).setVerticalAlignment("top");
+  else if(type==="VCENTER") ss.getRange(range).setVerticalAlignment("middle");
+  else if(type=="HCENTER") ss.getRange(range).setHorizontalAlignment("center");
 }
 function setValidation(range, list) {
   ss.getRange(range).setDataValidation(SpreadsheetApp.newDataValidation()
@@ -162,27 +168,29 @@ function createForm() {
 }
 const choices = [FormApp.ItemType.CHECKBOX, FormApp.ItemType.MULTIPLE_CHOICE];
 const visual = [FormApp.ItemType.IMAGE, FormApp.ItemType.VIDEO];
-const invalid = [
-  FormApp.ItemType.PAGE_BREAK, FormApp.ItemType.SECTION_HEADER, 
-  FormApp.ItemType.IMAGE, FormApp.ItemType.VIDEO
+const mix = [FormApp.ItemType.CHECKBOX, FormApp.ItemType.MULTIPLE_CHOICE,
+  FormApp.ItemType.PARAGRAPH_TEXT, FormApp.ItemType.TEXT,
 ];
 function setUpQuestion(i) {
   if(data[i][1]!=='') question.setTitle(data[i][1]);
   if(data[i][2]!=='') question.setHelpText(data[i][2]);
-
-  for (let j=0;j<choices.length;j++) { //only certain item types can add options
-    if(question.getType()===choices[j]) addOptions(i);
-  }
-  for (let j=0;j<visual.length;j++) { //only vertian item types can be visually formatted
+  for (let j=0;j<visual.length;j++) { //Visuals (Image + Video)
     if(question.getType()===visual[j]) formatVisual();
   }
-  for (let j=0;j<invalid.length;j++) { //makes sure invalid item types end here  
-    if(question.getType()===invalid[j]) return;
+  for (let j=0;j<choices.length;j++) { //Multiple Choice
+    if(question.getType()===choices[j]) {
+      addOptions(i);
+      if(data[i][4]!=='') question.setFeedbackForCorrect(FormApp.createFeedback().setText(data[i][4]).build());
+      if(data[i][5]!=='') question.setFeedbackForIncorrect(FormApp.createFeedback().setText(data[i][5]).build());
+      if(data[i][optionStart-2]!=='') question.showOtherOption(data[i][optionStart-2]);
+    }
   }
-  if(data[i][3]!=='') question.setPoints(data[i][3]);
-  if(data[i][4]!=='') question.setFeedbackForCorrect(FormApp.createFeedback().setText(data[i][4]).build());
-  if(data[i][5]!=='') question.setFeedbackForIncorrect(FormApp.createFeedback().setText(data[i][5]).build());
-  if(data[i][optionStart-1]!=='') question.setRequired(data[i][optionStart-1]);
+  for (let j=0;j<mix.length;j++) { //Multiple Choice + Text response
+    if(question.getType()==mix[j]) {
+      if(data[i][3]!=='') question.setPoints(data[i][3]);
+      if(data[i][optionStart-1]!=='') question.setRequired(data[i][optionStart-1]);
+    }
+  }
 }
 function addOptions(i) {
   const arr = [];
