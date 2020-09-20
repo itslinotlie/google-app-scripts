@@ -11,14 +11,16 @@ Creating large amounts of Google Forms can easily become tedious—especially wi
 
 | Question Types<br>(as shown in the Spreadsheet) | Explanation + Photo |
 |:-:|:-:|
-| MC | Multiple choice with only one correct answer. The highlighted cell will be the correct answer |
-| CHECKBOX | Multiple choice with multiple answers that must be chosen simultaneously for points. The highlighted cell(s) will be the correct answer |
-| SHORTANSWER | One-line text response |
-| PARAGRAPH | Multi-line text response |
-| HEADER | Extra info that can be included in the Form (doesn't have to be at the top of Forms) |
-| IMAGE | Image URL from the internet (needs to have an image extension at the end) |
-| IMAGE-DRIVE | Image from Google Drive (based on a String of text) |
-| VIDEO | Video URL from the internet |
+| MC | Multiple choice with only one correct answer. The highlighted cell will be the correct answer <img src="https://imgur.com/cXtwK86.jpg" alt="MC Screenshot" height=75%>|
+| CHECKBOX | Multiple choice with multiple answers that must be chosen simultaneously for points. The highlighted cell(s) will be the correct answer <img src="https://imgur.com/MWPW1Pm.jpg" alt="CHECKBOX Screenshot" height=75%> |
+| SHORTANSWER | One-line text response <img src="https://imgur.com/CervVug.jpg" alt="SHORTANSWER Screenshot" height=75%> |
+| PARAGRAPH | Multi-line text response <img src="https://imgur.com/EmsrPKO.jpg" alt="PARAGRAPH Screenshot" height=75%> |
+| HEADER | Extra info that can be included anywhere in the Form <img src="https://imgur.com/RmCzgic.jpg" alt="HEADER Screenshot" height=75%> |
+| IMAGE | Image URL from the internet (needs to have an image extension at the end) <img src="https://imgur.com/fpDJ5jB.jpg" alt="IMAGE Screenshot" height=75%> |
+| IMAGE-DRIVE | Image from Google Drive (based on a String of text) <img src="https://imgur.com/iX3wxD6.jpg" alt="IMAGE-DRIVE Screenshot" height=75%> |
+| VIDEO | Video URL from the internet <img src="https://imgur.com/UNzGQ0p.jpg" alt="VIDEO Screenshot" height=75%> |
+
+
 
 <!-- ### The True/False Fields -->
 
