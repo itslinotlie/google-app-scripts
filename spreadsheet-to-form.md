@@ -32,13 +32,26 @@ Creating large amounts of Google Forms can easily become tedious—especially wi
 | Link to Respond Again<br>(set to true by default) | <img src="https://imgur.com/mRTH1od.png" alt="One Response SS" height=75%> |
 | Publishinng Summary | <img src="https://imgur.com/yEhXXyp.png" alt="One Response SS" height=75%> |
 
-<!-- ## FAQ
+## FAQ
 
-### Folder ID
+### What is the Folder ID
 
-(include ss of folder id and what it does)
+<img src="https://imgur.com/zMFbFIS.png">
+
+Tired of dragging Forms to the proper folder? With folder ID, you have the ability to redirect where Forms are created. Creating lots of Forms for your Math class? Just add the Math class's folder ID into the indicated cell and all the Forms will be created in that folder. Without the Folder ID, the Form is automatically placed in your Drive.
+
+### Difference between private and public URL
+
+The public url is the version you would send others to take your Form, while the private url is the version you would see if you were to create the Form the original way (through Google Drive).
+
+### Do I have to fill in everything for the Form to work
+
+No. The Spreadsheet is created so that it still runs even if the input is incomplete. This means that your multiple choice question will still appear, even if you forgot to give it a title. Likewise, this also means that some features available in Forms (which may not be supported in the code) won't be added to the Form, such as having a "correct answer" for text responses (see below for alternative solutions).
+
+<!-- 
 (explain what public URL is)
 
 ### Drawbacks and How to Overcome them
 - release mark after sub
-- set answer for text responses -->
+- set answer for text responses
+- include images in MC      -->
