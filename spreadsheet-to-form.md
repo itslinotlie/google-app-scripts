@@ -40,7 +40,7 @@ Creating large amounts of Google Forms can easily become tedious—especially wi
 
 Tired of dragging Forms to the proper folder? With folder ID, you have the ability to redirect where Forms are created. Creating lots of Forms for your Math class? Just add the Math class's folder ID into the indicated cell and all the Forms will be created in that folder. Without the Folder ID, the Form is automatically placed in your Drive.
 
-### Difference between private and public URL
+### What is the difference between private and public URL
 
 The public url is the version you would send others to take your Form, while the private url is the version you would see if you were to create the Form the original way (through Google Drive).
 
@@ -48,10 +48,16 @@ The public url is the version you would send others to take your Form, while the
 
 No. The Spreadsheet is created so that it still runs even if the input is incomplete. This means that your multiple choice question will still appear, even if you forgot to give it a title. Likewise, this also means that some features available in Forms (which may not be supported in the code) won't be added to the Form, such as having a "correct answer" for text responses (see below for alternative solutions).
 
-<!-- 
-(explain what public URL is)
+## Drawbacks of Google Scripts and how to Overcome them
 
-### Drawbacks and How to Overcome them
-- release mark after sub
-- set answer for text responses
-- include images in MC      -->
+### Releasing marks immediately after submission
+
+Google Scripts has many boolean fields, but releasing marks immediately after submission isn't one of them ): The only way to include this option is to manually check it in the private form > Settings > Quizzes > "Releasse mark immediately after each submission". Doing so will allow the test taker to see their response, as well as the feedback that was set for that question (depending on whether they answerd it properly or not).
+
+### Revealing other information about Form status (point values, correct answers, and missed questions)
+
+If you want the respondent to see the point values you assigned for questions, you will have to manually check that. The same goes for revealing if they can see missed questions and correct answers. These are features which aren't available in Google Scripts and have to be done manullay ):
+
+<!-- 
+- include images in MC      
+-->
