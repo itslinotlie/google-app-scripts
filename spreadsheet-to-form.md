@@ -50,14 +50,19 @@ No. The Spreadsheet is created so that it still runs even if the input is incomp
 
 ## Drawbacks of Google Scripts and how to Overcome them
 
+<img src="https://imgur.com/N9WL7BA.png" alt="Setting annnotation" height=40%>
+
 ### Releasing marks immediately after submission
 
-Google Scripts has many boolean fields, but releasing marks immediately after submission isn't one of them ): The only way to include this option is to manually check it in the private form > Settings > Quizzes > "Releasse mark immediately after each submission". Doing so will allow the test taker to see their response, as well as the feedback that was set for that question (depending on whether they answerd it properly or not).
+Google Scripts has many boolean fields, but releasing marks immediately after submission isn't one of them ): The only way to include this option is to manually check the option in the private Form > Settings > Quizzes > "Releasse mark immediately after each submission". Doing so will allow the test taker to see their response, as well as the feedback that was set for that question (depending on whether they answerd it properly or not).
 
-### Revealing other information about Form status (point values, correct answers, and missed questions)
+### Revealing other information about Form status (point values & question status)
 
-If you want the respondent to see the point values you assigned for questions, you will have to manually check that. The same goes for revealing if they can see missed questions and correct answers. These are features which aren't available in Google Scripts and have to be done manullay ):
+If you want the respondent to see the point values you assigned for question, you will have to manually check that. The same goes for revealing if they can see missed questions and correct answers. These are features which are sadly unavailable in Google Scripts and have to be done manually ):
 
 <!-- 
 - include images in MC      
+- answer for text responses
+- linnk to demo spreadsheet
+- link to youtube video
 -->
