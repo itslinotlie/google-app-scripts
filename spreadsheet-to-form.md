@@ -16,6 +16,8 @@ Creating large amounts of Google Forms can quickly become tedious—especially w
 [Drawbacks of the Program](#Drawbacks-and-how-to-overcome-them)
 - [Release Marks](#Releasing-marks-immediately-after-submission)
 - [Reveal Additiaonal Form Info](#Revealinng-additional-Form-info)
+- [Images in MC](#Including-Images-in-MC)
+- [Answers for Text Responses](#Answers-for-Text-Responses)
 
 ---
 
@@ -63,6 +65,8 @@ No. The Spreadsheet is created so that it still runs even if the input is incomp
 
 ## Drawbacks and how to overcome them
 
+These are "drawbacks" that I have not been able to find a clean solution to with GAS. If you by any chance have a cleaner solution, create a MR and I will happily look at your solution :)
+
 <img src="https://imgur.com/N9WL7BA.png" alt="Setting annnotation" height=20%>
 
 ### Releasing marks immediately after submission
@@ -73,9 +77,19 @@ Google Scripts has many boolean fields, but releasing marks immediately after su
 
 If you want the respondent to see the point values you assigned for each question, you will have to check it manually. The same goes for revealing if they can see missed questions and correct answers. These are features which are sadly unavailable in Google Scripts and have to be done manually ):
 
+### Including Images in MC
+
+<img src="https://imgur.com/pP7xvRG.png" alt="Pictures in MC" height=75%> 
+
+Another problem that can only be solved manually ): 
+
+### Answers for Text Responses
+
+<img src="https://imgur.com/HQMnbJR.png" alt="Answer Key for Text" height=75%>
+
+Yes Google. Give developers the option to add points to text responses, but not the ability to assign a "correct answer"...
+
 <!-- 
-- include images in MC      
-- answer for text responses
 - linnk to demo spreadsheet
 - link to youtube video
 -->
