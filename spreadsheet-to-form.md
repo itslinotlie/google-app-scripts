@@ -4,6 +4,21 @@ Creating large amounts of Google Forms can easily become tedious—especially wi
 
 ---
 
+[Spreadsheet Components](#Spreadsheet-components)
+- [Types of Problems](#Types-of-Problems)
+- [Boolean Fields](#The-True/False-Fields)
+
+[FAQ](#FAQ)
+- [Folder ID](#What-is-the-Folder-ID)
+- [Private vs Public URL](#-What-is-the-difference-between-private-and-public-URL)
+- [Fill in Everything?](#Do-I-have-to-fill-in-everything-for-the-Form-to-work)
+
+[Drawbacks of the Program](#Drawbacks-of-Google-Scripts-and-how-to-Overcome-them)
+- [Release marks](#Releasing-marks-immediately-after-submission)
+- [Reveal Form Status](#Revealing-other-information-about-Form-status-(point-values-&-question-status))
+
+---
+
 ## Spreadsheet Components
 
 ### Types of Problems
