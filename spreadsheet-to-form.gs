@@ -6,10 +6,10 @@ var dataRange = ss.getDataRange(); //2d array dimensions
 var data = dataRange.getValues(); //2d array with values
 var question; 
 
-var headerSize = 4;
-var optionStart = 9; //0-indexed
-var optionLength = 10; //adjust this value accordingly if you need more options (make sure to change desRow to a larger value then)
-var desRow = 20, desCol = 20;
+var headerSize = 4; //how many rows before question type starts
+var optionStart = 9; //how many columns before OPTION starts
+var optionLength = 10; //length of OPTION cells (adjust accordingly)
+var desRow = 20, desCol = 20; //default row and column sizes (adjust accordingly)
 var correctColor = "#00ff00"; //default neon green highlight
 
 function onOpen() {
@@ -28,7 +28,7 @@ function createTemplate() {
   curRow = ss.getMaxRows(); curCol = ss.getMaxColumns();
 
   ss.clear(); //clears formatting
-  ss.setRowHeights(1, curRow, 21); ss.setColumnWidths(1, curCol, 100); //resize cells to default size
+  ss.setRowHeights(1, curRow, 21); ss.setColumnWidths(1, curCol, 100); //resize cells to default cell size
   ss.getRange(1, 1, desRow, desCol).setDataValidation(null); //clears data formatting so you dont need to create a new sheet
 
   //info to fill in/use
@@ -37,8 +37,8 @@ function createTemplate() {
   ss.getRange("A3").setValue("Highlight Color"); 
   ss.getRange("B3").setBackground("#00ff00");
   ss.getRange("C1").setValue("Folder ID:");
-  //delete the following line if you plan on copying this file
-  ss.getRange("D1").setValue("1D2yMTtKfq9ey5awuTbEiHXViCHDYgejH"); //delete when in production
+  //replace the value inside the "" with the Folder ID so that it's always there if you initilize the Spreadsheet
+  // ss.getRange("D1").setValue("1D2yMTtKfq9ey5awuTbEiHXViCHDYgejH");
   ss.getRange("C2").setValue("Public URL:");
   ss.getRange("C3").setValue("Private URL:");
 
@@ -47,14 +47,14 @@ function createTemplate() {
   ss.getRange("E2").setValue("Can Edit Response?");
   ss.getRange("E3").setValue("Collects Email?");
   ss.getRange("G1").setValue("Progress Bar?");
-  ss.getRange("G2").setValue("Link to Respond Again?"); //test to see difference between this and one response per user
+  ss.getRange("G2").setValue("Link to Respond Again?");
   ss.getRange("G3").setValue("Publishing Summary?");  
 
-  //question headers
+  //question header characters
   let charReq = String.fromCharCode(65+optionStart-1); 
   let charOther = String.fromCharCode(65+optionStart-2);
   let optStart = String.fromCharCode(65+optionStart); //3 represents row # (1-indexed)
-  let optEnd = String.fromCharCode(65+optionStart+optionLength-1); //Have to -1 for some reason? (check later)
+  let optEnd = String.fromCharCode(65+optionStart+optionLength-1);
 
   ss.getRange("A"+headerSize).setValue("Question Type");
   ss.getRange("B"+headerSize).setValue("Question");
@@ -67,27 +67,21 @@ function createTemplate() {
   ss.getRange(charReq+headerSize).setValue("Required?");
   ss.getRange(optStart+headerSize+":"+optEnd+headerSize).setValue("OPTION");
 
-  //formatting
+  //cell width formatting
   ss.getRange("4:4").setHorizontalAlignment("center");
   ss.setFrozenRows(headerSize); 
   ss.setFrozenColumns(4);
-  ss.setColumnWidth(2, 200);
-  ss.setColumnWidth(3, 200);
-  ss.setColumnWidth(5, 200);
-  ss.setColumnWidth(6, 200);
-  ss.setColumnWidth(7, 200);
+  ss.setColumnWidths(2, 2, 200); //first yth columns at X a width of Z
+  ss.setColumnWidths(5, 3, 200);
+  ss.setColumnWidths(optionStart+1, optionLength, 150);
 
-  //header formatting
-  setStrategy("B1:C"+curRow, "WRAP");
-  setStrategy("D1:D"+curRow, "VCENTER");
-  setStrategy("D1:D3", "CLIP");
-
-  //other formatting
-  setStrategy("A"+(headerSize+1)+":"+optEnd+curRow, "VTOP");
+  //cell align formatting
+  setStrategy("A1:"+optEnd+curRow, "WRAP"); //default setting is wrap
+  setStrategy("A1:"+optEnd+curRow, "VTOP"); //default setting is vertical
+  setStrategy("D1:D3", "CLIP"); //clip applies only to URLs (hopefully)
+  setStrategy("G"+(headerSize+1)+":G"+curRow, "CLIP");
+  setStrategy("D"+(headerSize+1)+":D"+curRow, "VCENTER"); //points alignment
   setStrategy("D"+(headerSize+1)+":D"+curRow, "HCENTER");
-  setStrategy("D"+(headerSize+1)+":D"+curRow, "VCENTER");
-  setStrategy("E"+(headerSize+1)+":F"+curRow, "WRAP");
-  setStrategy(optStart+(headerSize+1)+":"+optEnd+curRow, "WRAP");
 
   //data validation //https://developers.google.com/apps-script/reference/spreadsheet/data-validation-builder#setAllowInvalid
   const options = ["MC", "CHECKBOX", "SHORTANSWER", "PARAGRAPH", "PAGEBREAK", "HEADER", "IMAGE", "IMAGE-DRIVE", "VIDEO"];
@@ -108,12 +102,11 @@ function createTemplate() {
   //   .setAllowInvalid(false).requireValueInList(tmp, false).build());
 }
 function setStrategy(range, type) {
-  let strat;
   if(type==="WRAP") ss.getRange(range).setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP);
   else if(type==="CLIP") ss.getRange(range).setWrapStrategy(SpreadsheetApp.WrapStrategy.CLIP);
-  else if(type=="VTOP") ss.getRange(range).setVerticalAlignment("top");
+  else if(type==="VTOP") ss.getRange(range).setVerticalAlignment("top");
   else if(type==="VCENTER") ss.getRange(range).setVerticalAlignment("middle");
-  else if(type=="HCENTER") ss.getRange(range).setHorizontalAlignment("center");
+  else if(type==="HCENTER") ss.getRange(range).setHorizontalAlignment("center");
 }
 function setValidation(range, list) {
   ss.getRange(range).setDataValidation(SpreadsheetApp.newDataValidation()
@@ -157,7 +150,7 @@ function createForm() {
     if(x==='') continue; 
     if(x==="MC") question = form.addMultipleChoiceItem();
     else if(x==="CHECKBOX") question = form.addCheckboxItem();
-    else if(x==="SHORTANSWER") question = form.addTextItem(); //how do points work with short responses...
+    else if(x==="SHORTANSWER") question = form.addTextItem();
     else if(x==="PARAGRAPH") question = form.addParagraphTextItem();
     else if(x==="PAGEBREAK") question = form.addPageBreakItem();
     else if(x==="HEADER") question = form.addSectionHeaderItem(); //these are stackable, but don't look the greatest
