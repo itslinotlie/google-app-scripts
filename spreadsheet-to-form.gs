@@ -29,31 +29,32 @@ function createTemplate() {
   ss.clear(); //clears formatting
   ss.setRowHeights(1, curRow, 21); ss.setColumnWidths(1, curCol, 100); //resize cells to default cell size
   ss.getRange(1, 1, desRow, desCol).setDataValidation(null); //clears data formatting so you dont need to create a new sheet
+  let images = ss.getImages(); //removes all the current images in the sheet
+  for(let i=0;i<images.length;i++) images[i].remove();
 
   //info to fill in/use
   ss.getRange("A1").setValue("Form Title:");
   ss.getRange("A2").setValue("Form Desciption:");
   ss.getRange("A3").setValue("Highlight Color");
-  ss.getRange("A4").setValue("Randomly Pick Questions?");
   ss.getRange("B3").setBackground("#00ff00");
   ss.getRange("C1").setValue("Folder ID:");
   //replace the value inside the "" with the Folder ID so that it's always there if you initilize the Spreadsheet
   // ss.getRange("D1").setValue("1D2yMTtKfq9ey5awuTbEiHXViCHDYgejH");
   ss.getRange("C2").setValue("Public URL:");
   ss.getRange("C3").setValue("Private URL:");
-  ss.getRange("C4").setValue("Amount of Random Questions:");
+  ss.getRange("C4").setValue("Choose a random subset of questions based on category");
 
   //various boolean fields
   ss.getRange("E1").setValue("One Response per User?");
   ss.getRange("E2").setValue("Can Edit Response?");
   ss.getRange("E3").setValue("Collects Email?");
-  ss.getRange("E4").setValue("Include MC?");
-  ss.getRange("E5").setValue("Include SHORTANSWER?");
+  ss.getRange("E4").setValue("# of MC:");
+  ss.getRange("E5").setValue("# of SHORTANSWER:");
   ss.getRange("G1").setValue("Progress Bar?");
   ss.getRange("G2").setValue("Link to Respond Again?");
   ss.getRange("G3").setValue("Publishing Summary?");
-  ss.getRange("G4").setValue("Include Checkbox?");
-  ss.getRange("G5").setValue("Include PARAGRAPH?");
+  ss.getRange("G4").setValue("# of CHECKBOX:");
+  ss.getRange("G5").setValue("# of PARAGRAPH:");
 
   //question header characters
   let charReq = String.fromCharCode(65+optionStart-1); 
@@ -94,13 +95,17 @@ function createTemplate() {
   //data validation //https://developers.google.com/apps-script/reference/spreadsheet/data-validation-builder#setAllowInvalid
   const options = ["MC", "CHECKBOX", "SHORTANSWER", "PARAGRAPH", "PAGEBREAK", "HEADER", "IMAGE", "IMAGE-DRIVE", "VIDEO"];
   const bool = ["TRUE", "FALSE"]; 
-  setValidation("B4", bool);
   setValidation("F1:F5", bool);
   setValidation("H1:H5", bool);
   setValidation("A"+(headerSize+1)+":A"+curRow, options); //question type
   setValidation(charOther+(headerSize+1)+":"+charOther+curRow, bool); //other?
   setValidation(charReq+(headerSize+1)+":"+charReq+curRow, bool); //required?
 
+  //misc
+  ss.getRange("C4:C5").merge(); ss.getRange("D4:D5").merge();
+  let src = UrlFetchApp.fetch("https://imgur.com/YgGlQgV.png").getContent();
+  ss.insertImage(Utilities.newBlob(src, "image/png", "aName"), 4, 4, 28, 3);
+  
   //very "hacky" solution for "locking" cells from being edited
   // ss.getRange("G1").setValue("H1 and H2 are locked");
   // const blank = [""];  
@@ -161,7 +166,6 @@ function createForm() {
   if(data[4][5]!=='') SA = data[4][5];
   if(data[3][7]!=='') CK = data[3][7];
   if(data[4][7]!=='') PG = data[4][7];
-  ss.getRange("C10").setValue(MC+" "+CK+" | "+SA+" "+PG+"="+amt);
   for (let i=headerSize;i<row;i++) {
     let x = data[i][0]; 
     if(x==='') continue;
