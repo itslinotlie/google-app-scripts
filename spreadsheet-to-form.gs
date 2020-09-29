@@ -86,17 +86,18 @@ function createTemplate() {
   //cell align formatting
   setStrategy("A1:"+optEnd+curRow, "WRAP"); //default setting is wrap
   setStrategy("A1:"+optEnd+curRow, "VTOP"); //default setting is vertical
-  setStrategy("D1:D3", "CLIP"); //clip applies only to URLs (hopefully)
-  setStrategy("G"+(headerSize+1)+":G"+curRow, "CLIP");
-  setStrategy("D4", "VCENTER"); setStrategy("D4", "HCENTER"); //# of questions alignment
-  setStrategy("D"+(headerSize+1)+":D"+curRow, "VCENTER"); //points alignment
-  setStrategy("D"+(headerSize+1)+":D"+curRow, "HCENTER");
+  setStrategy("A1:"+optEnd+curRow, "HLEFT"); //need to set this for numbers to be left align
+  setStrategy("D1:D3", "CLIP"); //clip applies only to URLs
+  setStrategy("G"+(headerSize+1)+":G"+curRow, "CLIP"); //clip more URLs
+  setStrategy("F4:F5", "VCENTER"); setStrategy("F4:F5", "HCENTER"); //# of __ alignment
+  setStrategy("H4:H5", "VCENTER"); setStrategy("H4:H5", "HCENTER");
+  setStrategy("D"+(headerSize+1)+":D"+curRow, "VCENTER"); setStrategy("D"+(headerSize+1)+":D"+curRow, "HCENTER"); //points alignment
 
   //data validation //https://developers.google.com/apps-script/reference/spreadsheet/data-validation-builder#setAllowInvalid
   const options = ["MC", "CHECKBOX", "SHORTANSWER", "PARAGRAPH", "PAGEBREAK", "HEADER", "IMAGE", "IMAGE-DRIVE", "VIDEO"];
   const bool = ["TRUE", "FALSE"]; 
-  setValidation("F1:F5", bool);
-  setValidation("H1:H5", bool);
+  setValidation("F1:F3", bool);
+  setValidation("H1:H3", bool);
   setValidation("A"+(headerSize+1)+":A"+curRow, options); //question type
   setValidation(charOther+(headerSize+1)+":"+charOther+curRow, bool); //other?
   setValidation(charReq+(headerSize+1)+":"+charReq+curRow, bool); //required?
@@ -120,6 +121,7 @@ function setStrategy(range, type) {
   else if(type==="CLIP") ss.getRange(range).setWrapStrategy(SpreadsheetApp.WrapStrategy.CLIP);
   else if(type==="VTOP") ss.getRange(range).setVerticalAlignment("top");
   else if(type==="VCENTER") ss.getRange(range).setVerticalAlignment("middle");
+  else if(type==="HLEFT") ss.getRange(range).setHorizontalAlignment("left");
   else if(type==="HCENTER") ss.getRange(range).setHorizontalAlignment("center");
 }
 function setValidation(range, list) {
@@ -159,21 +161,21 @@ function createForm() {
   if(data[1][7]!=='') form.setShowLinkToRespondAgain(data[1][7]);
   if(data[2][7]!=='') form.setPublishingSummary(data[2][7]); //reveals question distribution, but no answers
 
-  let rnd = false, MC, CK, SA, PG, amt = 0, random = []; //0-indexed
-  if(data[3][3]!=='') amt = Math.min(data[3][3], row-headerSize+1);
-  if(data[3][1] && amt>0) rnd = true; //they want randomized questions
-  if(data[3][5]!=='') MC = data[3][5];
-  if(data[4][5]!=='') SA = data[4][5];
-  if(data[3][7]!=='') CK = data[3][7];
-  if(data[4][7]!=='') PG = data[4][7];
+  let rnd, arrRnd = [], cntRnd = [0, 0, 0, 0]; //MC, CB, SA, PG respectively
+  if(data[3][5]!=='') cntRnd[0] = data[3][5];
+  if(data[3][7]!=='') cntRnd[1] = data[3][7];
+  if(data[4][5]!=='') cntRnd[2] = data[4][5];
+  if(data[4][7]!=='') cntRnd[3] = data[4][7];
+  for (let i=0;i<4;i++) rnd = rnd || cntRnd[i]>0;
   for (let i=headerSize;i<row;i++) {
     let x = data[i][0]; 
     if(x==='') continue;
     if(rnd) {
-      if(x==="MC" && MC) random.push(i);
-      else if(x==="CHECKBOX" && CK) random.push(i);
-      else if(x==="SHORTANSWER" && SA) random.push(i);
-      else if(x==="PARAGRAPH" && PG) random.push(i);
+      if(x==="MC" && cntRnd[0]>0
+        || x==="CHECKBOX" && cntRnd[1]>0
+        || x==="SHORTANSWER" && cntRnd[2]>0
+        || x==="PARAGRAPH" && cntRnd[3]>0
+      ) arrRnd.push(i);
       continue;
     }
     if(x==="MC") question = form.addMultipleChoiceItem();
@@ -187,19 +189,16 @@ function createForm() {
     else if(x==="VIDEO") question = form.addVideoItem().setVideoUrl(data[i][6]);
     setUpQuestion(i);
   }
-  shuffle(random);
-  ss.getRange("C15").setValue(random.toString());
+  shuffle(arrRnd);
   if(rnd) {
-    for (let i=0;i<random.length && amt>0;i++) {
-      let x = data[random[i]][0];
+    for (let i=0;i<arrRnd.length;i++) {
+      let x = data[arrRnd[i]][0];
       if(x==='') continue;
-      if(x==="MC" && MC) question = form.addMultipleChoiceItem();
-      else if(x==='CHECKBOX' && CK) question = form.addCheckboxItem();
-      else if(x==='SHORTANSWER' && SA) question = form.addTextItem();
-      else if(x==='PARAGRAPH' && PG) question = form.addParagraphTextItem();
-      setUpQuestion(random[i]);
-      amt--;
-      ss.getRange("E"+(10+i)).setValue(question.getType());
+      if(x==="MC" && cntRnd[0]>0) question = form.addMultipleChoiceItem(), cntRnd[0]--;
+      else if(x==='CHECKBOX' && cntRnd[1]>0) question = form.addCheckboxItem(), cntRnd[1]--;
+      else if(x==='SHORTANSWER' && cntRnd[2]>0) question = form.addTextItem(), cntRnd[2]--;
+      else if(x==='PARAGRAPH' && cntRnd[3]>0) question = form.addParagraphTextItem(), cntRnd[3]--;
+      setUpQuestion(arrRnd[i]);
     }
   }
 }
