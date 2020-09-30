@@ -7,8 +7,9 @@ Creating large amounts of Google Forms can quickly become tedious—especially w
 [Spreadsheet Components](#Spreadsheet-components)
 - [Types of Problems](#Types-of-Problems)
 - [True/False Fields](#True/False-Fields)
+- [Random Question Subset](#Random-Question-Subset)
 
-[FAQ](#FAQ)
+[FAQ](#FAQ)  
 - [Folder ID](#What-is-the-Folder-ID)
 - [Private vs Public URL](#-What-is-the-difference-between-private-and-public-URL)
 - [Fill in Everything?](#Do-I-have-to-completely-fill-in-the-Form)
@@ -18,6 +19,8 @@ Creating large amounts of Google Forms can quickly become tedious—especially w
 - [Reveal Additiaonal Form Info](#Revealinng-additional-Form-info)
 - [Images in MC](#Including-Images-in-MC)
 - [Answers for Text Responses](#Answers-for-Text-Responses)
+
+[Spreadsheet References](#Spreadsheet-References)
 
 ---
 
@@ -46,6 +49,10 @@ Creating large amounts of Google Forms can quickly become tedious—especially w
 | Progress Bar<br>(True) | <img src="https://imgur.com/v98VDbV.png" alt="One Response SS" height=75%> |
 | Link to Respond Again<br>(False) | <img src="https://imgur.com/mRTH1od.png" alt="One Response SS" height=75%> |
 | Publishinng Summary<br>(True) | <img src="https://imgur.com/yEhXXyp.png" alt="One Response SS" height=75%> |
+
+### Random Question Subset
+
+Have 20 questions stored but only want 5 on the quiz? If order and which questions are chosen aren't a priority, this is for you. Currently supporting multiple choice, checkbox, shortanswer, and paragraph question types, you are able to choose how many questions from each category you wish to include in the form. However, due to the randomness, all other question types will not appear on the Form.
 
 ## FAQ
 
@@ -89,7 +96,9 @@ Another problem that can only be solved manually ):
 
 Yes Google. Give developers the option to add points to text responses, but not the ability to assign a "correct answer"...
 
-<!-- 
-- linnk to demo spreadsheet
-- link to youtube video
--->
+<!-- ## Spreadsheet References
+
+Some people, myself included, work better when there are examples to reference off of. Below will be two Spreadsheet share links: a Spreadsheet with multiple examples and a blank Spreadsheet in case something went wrong during the setup process.
+
+- [Demo copy]()
+- [Blank copy](https://docs.google.com/spreadsheets/d/1CbOZv0XPEX0BgJ7VU-Pus2foK_cB9N3AiIAxhvqOi38/edit?usp=sharing) -->
