@@ -17,6 +17,7 @@ Creating large amounts of Google Forms can quickly become tedious—especially w
 [Drawbacks of the Program](#Drawbacks-and-how-to-overcome-them)
 - [Release Marks](#Releasing-marks-immediately-after-submission)
 - [Reveal Additiaonal Form Info](#Revealinng-additional-Form-info)
+- [Short Public URLs](#Short-Public-URLs)
 - [Images in MC](#Including-Images-in-MC)
 - [Answers for Text Responses](#Answers-for-Text-Responses)
 
@@ -84,6 +85,12 @@ Google Scripts has many boolean fields, but releasing marks immediately after su
 
 If you want the respondent to see the point values you assigned for each question, you will have to check it manually. The same goes for revealing if they can see missed questions and correct answers. These are features which are sadly unavailable in Google Scripts and have to be done manually ):
 
+### Short Public URLs
+
+<img src="https://imgur.com/7qv0j45.png" alt="short-URL" height=75%>
+
+With Google Scripts, short public URLs are unheard of. The only way to have the shortened URL is by manually going into Send > Url Icon > Shorten URL. This will shorten the URL from a docs.google.com/forms/< String > to forms.gle/< String > with the newer String being a quarter of the original length.
+
 ### Including Images in MC
 
 <img src="https://imgur.com/pP7xvRG.png" alt="Pictures in MC" height=75%> 
@@ -96,9 +103,10 @@ Another problem that can only be solved manually ):
 
 Yes Google. Give developers the option to add points to text responses, but not the ability to assign a "correct answer"...
 
-<!-- ## Spreadsheet References
+## Spreadsheet References
 
 Some people, myself included, work better when there are examples to reference off of. Below will be two Spreadsheet share links: a Spreadsheet with multiple examples and a blank Spreadsheet in case something went wrong during the setup process.
 
-- [Demo copy]()
-- [Blank copy](https://docs.google.com/spreadsheets/d/1CbOZv0XPEX0BgJ7VU-Pus2foK_cB9N3AiIAxhvqOi38/edit?usp=sharing) -->
+- [Demo copy (still in the making)]()
+- [Blank copy](https://docs.google.com/spreadsheets/d/1CbOZv0XPEX0BgJ7VU-Pus2foK_cB9N3AiIAxhvqOi38/edit?usp=sharing)
+- [Link to Youtube Video(still in the making)]()
