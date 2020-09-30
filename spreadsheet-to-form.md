@@ -21,6 +21,11 @@ Creating large amounts of Google Forms can quickly become tedious—especially w
 - [Images in MC](#Including-Images-in-MC)
 - [Answers for Text Responses](#Answers-for-Text-Responses)
 
+[Editing the Code](#Editing-the-Code)
+- [Hard-coding Folder ID](#Hard-coding-the-Folder-ID)
+- [Adding/Removing OPTIONS](#Adding/Removing-OPTIONS)
+- [Editing Spreadsheet Dimensions](#Editing-Spreadsheet-Dimensions)
+
 [Spreadsheet References](#Spreadsheet-References)
 
 ---
@@ -102,6 +107,33 @@ Another problem that can only be solved manually ):
 <img src="https://imgur.com/HQMnbJR.png" alt="Answer Key for Text" height=75%>
 
 Yes Google. Give developers the option to add points to text responses, but not the ability to assign a "correct answer"...
+
+## Editing the Code
+
+The code works, but it's not perfect. There are some changes and quality of life improvements that can only be made be tweaking the code, which will be discussed here. To simplify this process, even for those who haven't touched code, there will be annonations of screenshots, along with the respective code line. Since the code is constantly being improved from feedback and suggestions, the given line numbers may not be exact. However, there will be always be a symbol signifiying that the below line can be changed. Occasionally, the line of code will be commented out, so remove the "//" and adjust the line accordingly. The annotations of the screenshots are created so that only the values underlined should be changed.
+
+~~~
+The Symbol:
+// \o> Edit Me <o/
+~~~
+
+### Hard-coding the Folder ID
+
+<img src="https://imgur.com/JV0PgET.jpg">
+
+If you're tired of constantly pasting the folder ID, but you don't switch folders frequently, you can hardcode the folder ID into the code. This means that whenever you initilize the Spreadsheet, the folder ID will always be there. Simply remove the // and replace the characters inside the " " with your respective folder ID.
+
+### Adding/Removing OPTIONS
+
+<img src="https://imgur.com/NXOTXU2.jpg">
+
+The Spreadsheet supports up to 10 options for multiple choice and checkbox, but this value is completely changeable. Adjust the optionLength variable accordingly for the desired number of options. Remember to take into account that if you increase the optionLength, desCol should change as well to accomdate for the extra cells.
+
+### Editing Spreadsheet Dimensions
+
+<img src="https://imgur.com/QB0e5FP.jpg">
+
+Changing the amount of columnns was discussed eariler, but it is also possible to change the amount of rows. If the default 20 rows isn't enough, change it :)
 
 ## Spreadsheet References
 

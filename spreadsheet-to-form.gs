@@ -7,10 +7,16 @@ var question;
 
 var headerSize = 6; //how many rows before question type starts
 var optionStart = 9; //how many columns before OPTION starts
-var optionLength = 10; //length of OPTION cells (adjust accordingly)
-var desRow = 20, desCol = 20; //default row and column sizes (adjust accordingly)
+// \o> Edit Me <o/
+var optionLength = 10;
+// \o> Edit Me <o/
+var desRow = 20, desCol = 20;
+
 var correctColor = "#00ff00"; //default neon green highlight
 
+function onInstall(e) {
+  onOpen(e);
+}
 function onOpen(e) {
   let menu = SpreadsheetApp.getUi().createMenu("Forms");
   menu.addItem("Initilize Spreadsheet", "createTemplate").addToUi();
@@ -29,8 +35,7 @@ function createTemplate() {
   ss.clear(); //clears formatting
   ss.setRowHeights(1, curRow, 21); ss.setColumnWidths(1, curCol, 100); //resize cells to default cell size
   ss.getRange(1, 1, desRow, desCol).setDataValidation(null); //clears data formatting so you dont need to create a new sheet
-  let images = ss.getImages(); //removes all the current images in the sheet
-  for(let i=0;i<images.length;i++) images[i].remove();
+  while(ss.getImages().length>0) ss.getImages()[0].remove(); //removes all images in the sheet
 
   //info to fill in/use
   ss.getRange("A1").setValue("Form Title:");
@@ -38,8 +43,9 @@ function createTemplate() {
   ss.getRange("A3").setValue("Highlight Color");
   ss.getRange("B3").setBackground("#00ff00");
   ss.getRange("C1").setValue("Folder ID:");
-  //replace the value inside the "" with the Folder ID so that it's always there if you initilize the Spreadsheet
+  // \o> Edit Me <o/
   // ss.getRange("D1").setValue("1D2yMTtKfq9ey5awuTbEiHXViCHDYgejH");
+  
   ss.getRange("C2").setValue("Public URL:");
   ss.getRange("C3").setValue("Private URL:");
   ss.getRange("C4").setValue("Choose a random subset of questions based on category");
@@ -59,7 +65,7 @@ function createTemplate() {
   //question header characters
   let charReq = String.fromCharCode(65+optionStart-1); 
   let charOther = String.fromCharCode(65+optionStart-2);
-  let optStart = String.fromCharCode(65+optionStart); //3 represents row # (1-indexed)
+  let optStart = String.fromCharCode(65+optionStart);
   let optEnd = String.fromCharCode(65+optionStart+optionLength-1);
 
   ss.getRange("A"+headerSize).setValue("Question Type");
@@ -74,11 +80,10 @@ function createTemplate() {
   ss.getRange(optStart+headerSize+":"+optEnd+headerSize).setValue("OPTION");
 
   //cell width formatting
-  ss.getRange(headerSize+":"+headerSize).setHorizontalAlignment("center");
   ss.setFrozenRows(headerSize); 
   ss.setFrozenColumns(4);
-  ss.setColumnWidth(1, 150);
-  ss.setColumnWidth(7, 150);
+  ss.setColumnWidth(1, 150); //question type
+  ss.setColumnWidth(7, 150); //2nd set of booleans
   ss.setColumnWidths(2, 2, 200); //first yth columns at X a width of Z
   ss.setColumnWidths(5, 2, 200);
   ss.setColumnWidths(optionStart+1, optionLength, 150);
@@ -90,8 +95,9 @@ function createTemplate() {
   setStrategy("D1:D3", "CLIP"); //clip applies only to URLs
   setStrategy("G"+(headerSize+1)+":G"+curRow, "CLIP"); //clip more URLs
   setStrategy("F4:F5", "VCENTER"); setStrategy("F4:F5", "HCENTER"); //# of __ alignment
-  setStrategy("H4:H5", "VCENTER"); setStrategy("H4:H5", "HCENTER");
+  setStrategy("H4:H5", "VCENTER"); setStrategy("H4:H5", "HCENTER"); //^^^
   setStrategy("D"+(headerSize+1)+":D"+curRow, "VCENTER"); setStrategy("D"+(headerSize+1)+":D"+curRow, "HCENTER"); //points alignment
+  setStrategy(headerSize+":"+headerSize, "HCENTER"); //header centering
 
   //data validation //https://developers.google.com/apps-script/reference/spreadsheet/data-validation-builder#setAllowInvalid
   const options = ["MC", "CHECKBOX", "SHORTANSWER", "PARAGRAPH", "PAGEBREAK", "HEADER", "IMAGE", "IMAGE-DRIVE", "VIDEO"];
