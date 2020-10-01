@@ -20,6 +20,7 @@ Creating large amounts of Google Forms can quickly become tedious—especially w
 - [Short Public URLs](#Short-Public-URLs)
 - [Images in MC](#Including-Images-in-MC)
 - [Answers for Text Responses](#Answers-for-Text-Responses)
+- [File Uploads](#File-Uploads)
 
 [Editing the Code](#Editing-the-Code)
 - [Hard-coding Folder ID](#Hard-coding-the-Folder-ID)
@@ -107,6 +108,12 @@ Another problem that can only be solved manually ):
 <img src="https://imgur.com/HQMnbJR.png" alt="Answer Key for Text" height=75%>
 
 Yes Google. Give developers the option to add points to text responses, but not the ability to assign a "correct answer"...
+
+### File Uploads
+
+<img src="https://imgur.com/lQpccGR.png" alt="File Uploads" height=75%>
+
+More labor work :sigh:
 
 ## Editing the Code
 
