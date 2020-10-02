@@ -11,7 +11,6 @@ var optionStart = 9; //how many columns before OPTION starts
 var optionLength = 10;
 // \o> Edit Me <o/
 var desRow = 20, desCol = 20;
-
 var correctColor = "#00ff00"; //default neon green highlight
 
 function onInstall(e) {
@@ -100,7 +99,7 @@ function createTemplate() {
   setStrategy(headerSize+":"+headerSize, "HCENTER"); //header centering
 
   //data validation //https://developers.google.com/apps-script/reference/spreadsheet/data-validation-builder#setAllowInvalid
-  const options = ["MC", "CHECKBOX", "SHORTANSWER", "PARAGRAPH", "PAGEBREAK", "HEADER", "IMAGE", "IMAGE-DRIVE", "VIDEO"];
+  const options = ["MC", "CHECKBOX", "DROPDOWN", "SHORTANSWER", "PARAGRAPH", "PAGEBREAK", "HEADER", "IMAGE", "IMAGE-DRIVE", "VIDEO"];
   const bool = ["TRUE", "FALSE"]; 
   setValidation("F1:F3", bool);
   setValidation("H1:H3", bool);
@@ -186,6 +185,7 @@ function createForm() {
     }
     if(x==="MC") question = form.addMultipleChoiceItem();
     else if(x==="CHECKBOX") question = form.addCheckboxItem();
+    else if(x==="DROPDOWN") question = form.addListItem();
     else if(x==="SHORTANSWER") question = form.addTextItem();
     else if(x==="PARAGRAPH") question = form.addParagraphTextItem();
     else if(x==="PAGEBREAK") question = form.addPageBreakItem();
@@ -214,27 +214,28 @@ function shuffle(arr) { //Fisher-Yates shuffle
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
 }
-const choices = [FormApp.ItemType.CHECKBOX, FormApp.ItemType.MULTIPLE_CHOICE];
+const choices = [FormApp.ItemType.CHECKBOX, FormApp.ItemType.MULTIPLE_CHOICE, FormApp.ItemType.LIST];
 const visual = [FormApp.ItemType.IMAGE, FormApp.ItemType.VIDEO];
 const mix = [FormApp.ItemType.CHECKBOX, FormApp.ItemType.MULTIPLE_CHOICE,
-  FormApp.ItemType.PARAGRAPH_TEXT, FormApp.ItemType.TEXT,
+  FormApp.ItemType.PARAGRAPH_TEXT, FormApp.ItemType.TEXT, FormApp.ItemType.LIST,
 ];
 function setUpQuestion(i) {
   if(data[i][1]!=='') question.setTitle(data[i][1]);
   if(data[i][2]!=='') question.setHelpText(data[i][2]);
+  let type = question.getType();
   for (let j=0;j<visual.length;j++) { //Visuals (Image + Video)
-    if(question.getType()===visual[j]) formatVisual();
+    if(type===visual[j]) formatVisual();
   }
-  for (let j=0;j<choices.length;j++) { //Multiple Choice
-    if(question.getType()===choices[j]) {
+  for (let j=0;j<choices.length;j++) { //Adding options + feedback
+    if(type===choices[j]) {
       addOptions(i);
       if(data[i][4]!=='') question.setFeedbackForCorrect(FormApp.createFeedback().setText(data[i][4]).build());
       if(data[i][5]!=='') question.setFeedbackForIncorrect(FormApp.createFeedback().setText(data[i][5]).build());
-      if(data[i][optionStart-2]!=='') question.showOtherOption(data[i][optionStart-2]);
+      if(data[i][optionStart-2]!=='' && type!=FormApp.ItemType.LIST) question.showOtherOption(data[i][optionStart-2]);
     }
   }
-  for (let j=0;j<mix.length;j++) { //Multiple Choice + Text response
-    if(question.getType()===mix[j]) {
+  for (let j=0;j<mix.length;j++) { //Adding points + setting required
+    if(type===mix[j]) {
       if(data[i][3]!=='') question.setPoints(data[i][3]);
       if(data[i][optionStart-1]!=='') question.setRequired(data[i][optionStart-1]);
     }
