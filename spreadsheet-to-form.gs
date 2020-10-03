@@ -10,7 +10,7 @@ var optionStart = 9; //how many columns before OPTION starts
 // \o> Edit Me <o/
 var optionLength = 10;
 // \o> Edit Me <o/
-var desRow = 20, desCol = 20;
+var desRow = 21, desCol = 19; //row = up-down length, col = left-right length
 var correctColor = "#00ff00"; //default neon green highlight
 
 function onInstall(e) {
@@ -44,7 +44,6 @@ function createTemplate() {
   ss.getRange("C1").setValue("Folder ID:");
   // \o> Edit Me <o/
   // ss.getRange("D1").setValue("1D2yMTtKfq9ey5awuTbEiHXViCHDYgejH");
-  
   ss.getRange("C2").setValue("Public URL:");
   ss.getRange("C3").setValue("Private URL:");
   ss.getRange("C4").setValue("Choose a random subset of questions based on category");
@@ -62,8 +61,8 @@ function createTemplate() {
   ss.getRange("G5").setValue("# of PARAGRAPH:");
 
   //question header characters
-  let charReq = String.fromCharCode(65+optionStart-1); 
   let charOther = String.fromCharCode(65+optionStart-2);
+  let charReq = String.fromCharCode(65+optionStart-1); 
   let optStart = String.fromCharCode(65+optionStart);
   let optEnd = String.fromCharCode(65+optionStart+optionLength-1);
 
@@ -83,8 +82,8 @@ function createTemplate() {
   ss.setFrozenColumns(4);
   ss.setColumnWidth(1, 150); //question type
   ss.setColumnWidth(7, 150); //2nd set of booleans
-  ss.setColumnWidths(2, 2, 200); //first yth columns at X a width of Z
-  ss.setColumnWidths(5, 2, 200);
+  ss.setColumnWidths(2, 2, 200); //question + instruction
+  ss.setColumnWidths(5, 2, 200); //(in)correct text feedback
   ss.setColumnWidths(optionStart+1, optionLength, 150);
 
   //cell align formatting
