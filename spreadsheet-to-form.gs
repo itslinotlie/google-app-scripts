@@ -11,7 +11,8 @@ var optionStart = 9; //how many columns before OPTION starts
 var optionLength = 10;
 // \o> Edit Me <o/
 var desRow = 21, desCol = 19; //row = up-down length, col = left-right length
-var correctColor = "#00ff00"; //default neon green highlight
+// \o> Edit Me <o/
+var correctColor = "#29d57b";
 
 function onInstall(e) {
   onOpen(e);
@@ -40,7 +41,7 @@ function createTemplate() {
   ss.getRange("A1").setValue("Form Title:");
   ss.getRange("A2").setValue("Form Desciption:");
   ss.getRange("A3").setValue("Highlight Color");
-  ss.getRange("B3").setBackground("#00ff00");
+  ss.getRange("B3").setBackground(correctColor);
   ss.getRange("C1").setValue("Folder ID:");
   // \o> Edit Me <o/
   // ss.getRange("D1").setValue("1D2yMTtKfq9ey5awuTbEiHXViCHDYgejH");
@@ -90,6 +91,7 @@ function createTemplate() {
   setStrategy("A1:"+optEnd+curRow, "WRAP"); //default setting is wrap
   setStrategy("A1:"+optEnd+curRow, "VTOP"); //default setting is vertical
   setStrategy("A1:"+optEnd+curRow, "HLEFT"); //need to set this for numbers to be left align
+  setStrategy("A"+(headerSize+1)+":A"+curRow, "HCENTER"); // question type
   setStrategy("D1:D3", "CLIP"); //clip applies only to URLs
   setStrategy("G"+(headerSize+1)+":G"+curRow, "CLIP"); //clip more URLs
   setStrategy("F4:F5", "VCENTER"); setStrategy("F4:F5", "HCENTER"); //# of __ alignment

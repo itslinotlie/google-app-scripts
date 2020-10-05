@@ -12,6 +12,7 @@ Creating large amounts of Google Forms can quickly become tedious—especially w
 [FAQ](#FAQ)  
 - [Folder ID](#What-is-the-Folder-ID)
 - [Private vs Public URL](#-What-is-the-difference-between-private-and-public-URL)
+- [Highlight Color](#How-to-Highlight-the-Answer)
 - [Fill in Everything?](#Do-I-have-to-completely-fill-in-the-Form)
 
 [Drawbacks of the Program](#Drawbacks-and-how-to-overcome-them)
@@ -24,6 +25,7 @@ Creating large amounts of Google Forms can quickly become tedious—especially w
 
 [Editing the Code](#Editing-the-Code)
 - [Hard-coding Folder ID](#Hard-coding-the-Folder-ID)
+- [Changing Highlight Color](#Changing-the-Default-Highlight-Color)
 - [Adding/Removing OPTIONS](#Adding/Removing-OPTIONS)
 - [Editing Spreadsheet Dimensions](#Editing-Spreadsheet-Dimensions)
 
@@ -73,6 +75,10 @@ Tired of dragging Forms to the proper folder? With folder ID, you can redirect w
 ### What is the difference between private and public URL
 
 The public URL is the version you would send others to take your Form, while the private URL is the version you would see if you were to create the Form the original way (through Google Drive).
+
+### How to Highlight the Answer
+
+To tell the Form which questions are correct (in MC and CHECKBOX), you need to highlight the appropriate cells with the highlight color. Whatever color is beside the "highlight cell" will be the color the form looks for in determining the correct answer. On the current version, this is the green shade in the custom color section. If this disgusts you, this is changeable in [#Changing the Highlight Color](#Changing-the-Default-Highlight-Color)
 
 ### Do I have to completely fill in the Form
 
@@ -130,6 +136,12 @@ The Symbol:
 <img src="https://imgur.com/JV0PgET.jpg">
 
 If you're tired of constantly pasting the folder ID, but you don't switch folders frequently, you can hardcode the folder ID into the code. This means that whenever you initilize the Spreadsheet, the folder ID will always be there. Simply remove the // and replace the characters inside the " " with your respective folder ID.
+
+### Changing the Default Highlight Color
+
+<img src="https://imgur.com/c5FPHZn.png">
+
+If you're on an eariler version of the code, your highlight color may be different from the current color. If apperances aren't a priority, you can change the default version of the highlight color to whatever hex color you wish (past neon green was #00ff00).
 
 ### Adding/Removing OPTIONS
 
