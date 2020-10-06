@@ -13,6 +13,7 @@ var optionLength = 10;
 var desRow = 21, desCol = 19; //row = up-down length, col = left-right length
 // \o> Edit Me <o/
 var correctColor = "#29d57b";
+var green = "#29d57b", tan = "#faefcf", blue = "#f0f8ff", black = "#000000";
 
 function onInstall(e) {
   onOpen(e);
@@ -81,6 +82,7 @@ function createTemplate() {
   //cell width formatting
   ss.setFrozenRows(headerSize); 
   ss.setFrozenColumns(4);
+  ss.setRowHeight(headerSize, 50);
   ss.setColumnWidth(1, 150); //question type
   ss.setColumnWidth(7, 150); //2nd set of booleans
   ss.setColumnWidths(2, 2, 200); //question + instruction
@@ -92,6 +94,8 @@ function createTemplate() {
   setStrategy("A1:"+optEnd+curRow, "VTOP"); //default setting is vertical
   setStrategy("A1:"+optEnd+curRow, "HLEFT"); //need to set this for numbers to be left align
   setStrategy("A"+(headerSize+1)+":A"+curRow, "HCENTER"); // question type
+  setStrategy("A"+(headerSize+1)+":A"+curRow, "VCENTER"); //^^^
+  setStrategy(headerSize+":"+headerSize, "VCENTER"); //headers
   setStrategy("D1:D3", "CLIP"); //clip applies only to URLs
   setStrategy("G"+(headerSize+1)+":G"+curRow, "CLIP"); //clip more URLs
   setStrategy("F4:F5", "VCENTER"); setStrategy("F4:F5", "HCENTER"); //# of __ alignment
@@ -110,9 +114,15 @@ function createTemplate() {
 
   //misc
   ss.getRange("C4:C5").merge(); ss.getRange("D4:D5").merge();
+  //top, left, bottom, right, vertical, horizontal, color, style)
+  ss.getRange("B3").setBorder(true, true, true, true, false, false, black, SpreadsheetApp.BorderStyle.SOLID_MEDIUM);
+  ss.getRange(headerSize+":"+headerSize).setBorder(true, false, true, false, false, false, black, SpreadsheetApp.BorderStyle.SOLID_MEDIUM);
   let src = UrlFetchApp.fetch("https://imgur.com/YgGlQgV.png").getContent();
   ss.insertImage(Utilities.newBlob(src, "image/png", "aName"), 4, 4, 28, 3);
-  
+
+  //colors
+  ss.getRange(headerSize+":"+headerSize).setBackground(green);
+
   //very "hacky" solution for "locking" cells from being edited
   // ss.getRange("G1").setValue("H1 and H2 are locked");
   // const blank = [""];  
