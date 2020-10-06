@@ -42,7 +42,6 @@ function createTemplate() {
   ss.getRange("A1").setValue("Form Title:");
   ss.getRange("A2").setValue("Form Desciption:");
   ss.getRange("A3").setValue("Highlight Color");
-  ss.getRange("B3").setBackground(correctColor);
   ss.getRange("C1").setValue("Folder ID:");
   // \o> Edit Me <o/
   // ss.getRange("D1").setValue("1D2yMTtKfq9ey5awuTbEiHXViCHDYgejH");
@@ -80,28 +79,19 @@ function createTemplate() {
   ss.getRange(optStart+headerSize+":"+optEnd+headerSize).setValue("OPTION");
 
   //cell width formatting
-  ss.setFrozenRows(headerSize); 
-  ss.setFrozenColumns(4);
-  ss.setRowHeight(headerSize, 50);
-  ss.setColumnWidth(1, 150); //question type
-  ss.setColumnWidth(7, 150); //2nd set of booleans
-  ss.setColumnWidths(2, 2, 200); //question + instruction
-  ss.setColumnWidths(5, 2, 200); //(in)correct text feedback
+  ss.setFrozenRows(headerSize); ss.setFrozenColumns(4);
+  setSize([headerSize], 50, "R");
+  setSize([1, 7], 150, "C");
+  setSize([2, 3, 5, 6], 200, "C");
   ss.setColumnWidths(optionStart+1, optionLength, 150);
 
   //cell align formatting
-  setStrategy("A1:"+optEnd+curRow, "WRAP"); //default setting is wrap
-  setStrategy("A1:"+optEnd+curRow, "VTOP"); //default setting is vertical
-  setStrategy("A1:"+optEnd+curRow, "HLEFT"); //need to set this for numbers to be left align
-  setStrategy("A"+(headerSize+1)+":A"+curRow, "HCENTER"); // question type
-  setStrategy("A"+(headerSize+1)+":A"+curRow, "VCENTER"); //^^^
-  setStrategy(headerSize+":"+headerSize, "VCENTER"); //headers
-  setStrategy("D1:D3", "CLIP"); //clip applies only to URLs
-  setStrategy("G"+(headerSize+1)+":G"+curRow, "CLIP"); //clip more URLs
-  setStrategy("F4:F5", "VCENTER"); setStrategy("F4:F5", "HCENTER"); //# of __ alignment
-  setStrategy("H4:H5", "VCENTER"); setStrategy("H4:H5", "HCENTER"); //^^^
-  setStrategy("D"+(headerSize+1)+":D"+curRow, "VCENTER"); setStrategy("D"+(headerSize+1)+":D"+curRow, "HCENTER"); //points alignment
-  setStrategy(headerSize+":"+headerSize, "HCENTER"); //header centering
+  setStrategy(["A1:"+optEnd+curRow, "C4"], ["WRAP"]);
+  setStrategy(["A1:"+optEnd+curRow], ["VTOP"]);
+  setStrategy(["A1:"+optEnd+curRow], ["HLEFT"]);
+  setStrategy(["A"+(headerSize+1)+":A"+curRow, headerSize+":"+headerSize, "F1:F5", "H1:H5", "D"+(headerSize+1)+":D"+curRow,
+    charOther+(headerSize+1)+":"+charOther+curRow, charReq+(headerSize+1)+":"+charReq+curRow], ["HCENTER", "VCENTER"]);
+  setStrategy(["D1:D3", "G"+(headerSize+1)+":G"+curRow], ["CLIP"]);
 
   //data validation //https://developers.google.com/apps-script/reference/spreadsheet/data-validation-builder#setAllowInvalid
   const options = ["MC", "CHECKBOX", "DROPDOWN", "SHORTANSWER", "PARAGRAPH", "PAGEBREAK", "HEADER", "IMAGE", "IMAGE-DRIVE", "VIDEO"];
@@ -114,14 +104,20 @@ function createTemplate() {
 
   //misc
   ss.getRange("C4:C5").merge(); ss.getRange("D4:D5").merge();
+  let src = UrlFetchApp.fetch("https://imgur.com/QSzRPRL.png").getContent();
+  ss.insertImage(Utilities.newBlob(src, "image/png", "aName"), 4, 4, 28, -2);
+
+  //UI formating
   //top, left, bottom, right, vertical, horizontal, color, style)
   ss.getRange("B3").setBorder(true, true, true, true, false, false, black, SpreadsheetApp.BorderStyle.SOLID_MEDIUM);
   ss.getRange(headerSize+":"+headerSize).setBorder(true, false, true, false, false, false, black, SpreadsheetApp.BorderStyle.SOLID_MEDIUM);
-  let src = UrlFetchApp.fetch("https://imgur.com/YgGlQgV.png").getContent();
-  ss.insertImage(Utilities.newBlob(src, "image/png", "aName"), 4, 4, 28, 3);
-
-  //colors
+  ss.getRange("A1:"+optEnd+curRow).setBackground(tan);
   ss.getRange(headerSize+":"+headerSize).setBackground(green);
+  ss.getRange("A"+(headerSize+1)+":"+optEnd+curRow).setBackground(blue);
+  ss.getRange("B3").setBackground(correctColor);
+
+  setFormat(["A1:A2", "C1:C3", "E1:E3", "G1:G3", headerSize+":"+headerSize], "bold");
+  setFormat(["A1:A2", "C1:C3", headerSize+":"+headerSize], 12);
 
   //very "hacky" solution for "locking" cells from being edited
   // ss.getRange("G1").setValue("H1 and H2 are locked");
@@ -132,17 +128,33 @@ function createTemplate() {
   // ss.getRange("A1").setDataValidation(SpreadsheetApp.newDataValidation()
   //   .setAllowInvalid(false).requireValueInList(tmp, false).build());
 }
+function setSize(range, size, letter) {
+  for (let i=0;i<range.length;i++) {
+    if(letter==="R") ss.setRowHeight(range[i], size);
+    else if(letter==="C") ss.setColumnWidth(range[i], size);
+  }
+}
 function setStrategy(range, type) {
-  if(type==="WRAP") ss.getRange(range).setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP);
-  else if(type==="CLIP") ss.getRange(range).setWrapStrategy(SpreadsheetApp.WrapStrategy.CLIP);
-  else if(type==="VTOP") ss.getRange(range).setVerticalAlignment("top");
-  else if(type==="VCENTER") ss.getRange(range).setVerticalAlignment("middle");
-  else if(type==="HLEFT") ss.getRange(range).setHorizontalAlignment("left");
-  else if(type==="HCENTER") ss.getRange(range).setHorizontalAlignment("center");
+  for (let i=0;i<range.length;i++) {
+    for (let j=0;j<type.length;j++) {
+      if(type[j]==="WRAP") ss.getRange(range[i]).setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP);
+      else if(type[j]==="CLIP") ss.getRange(range[i]).setWrapStrategy(SpreadsheetApp.WrapStrategy.CLIP);
+      else if(type[j]==="VTOP") ss.getRange(range[i]).setVerticalAlignment("top");
+      else if(type[j]==="VCENTER") ss.getRange(range[i]).setVerticalAlignment("middle");
+      else if(type[j]==="HLEFT") ss.getRange(range[i]).setHorizontalAlignment("left");
+      else if(type[j]==="HCENTER") ss.getRange(range[i]).setHorizontalAlignment("center");
+    }
+  }
 }
 function setValidation(range, list) {
   ss.getRange(range).setDataValidation(SpreadsheetApp.newDataValidation()
     .setAllowInvalid(false).requireValueInList(list, true).build());
+}
+function setFormat(range, type) {
+  for (let i=0;i<range.length;i++) {
+    if(type==="bold") ss.getRange(range[i]).setFontWeight("bold");
+    else if(!isNaN(type)) ss.getRange(range[i]).setFontSize(type);
+  }
 }
 function createForm() {
   let row = ss.getDataRange().getNumRows();
