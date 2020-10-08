@@ -31,6 +31,8 @@ Creating large amounts of Google Forms can quickly become tedious—especially w
 
 [Spreadsheet References](#Spreadsheet-References)
 
+[Spreadsheet Timeline](#Spreadsheet-UI-Timeline)
+
 ---
 
 ## Spreadsheet Components
@@ -162,3 +164,25 @@ Some people, myself included, work better when there are examples to reference o
 - [Demo copy (still in the making)]()
 - [Blank copy](https://docs.google.com/spreadsheets/d/1CbOZv0XPEX0BgJ7VU-Pus2foK_cB9N3AiIAxhvqOi38/edit?usp=sharing)
 - [Link to Youtube Video(still in the making)]()
+
+---
+
+## Spreadsheet UI Timeline
+
+An archive of the previous code versions
+
+### Aug 25
+<img src="https://imgur.com/GGJjCzs.png">
+- Mimicked basic functions of Forms
+
+### Sept 2
+<img src="https://imgur.com/jwhNIAJ.png">
+- Added most commonly used boolean fields (from my experience)
+
+### Sept 29
+<img src="https://imgur.com/OvbYDP5.png">
+- Choose random subset of questions
+
+### Oct 6
+<img src="https://imgur.com/9VrMiwi.png">
+- UI revamp
