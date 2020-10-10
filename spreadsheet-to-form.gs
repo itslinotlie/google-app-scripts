@@ -5,16 +5,34 @@ var ss = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet(); //getActiveShee
 var data = ss.getDataRange().getValues(); //2d array with values
 var question; 
 
+// \o> Edit Me <o/
+var optionLength = 5;
+// \o> Edit Me <o/
+var desRow = 21, desCol = 9+optionLength;
 var headerSize = 6; //how many rows before question type starts
-var optionStart = 9; //how many columns before OPTION starts
-// \o> Edit Me <o/
-var optionLength = 10;
-// \o> Edit Me <o/
-var desRow = 21, desCol = 19; //row = up-down length, col = left-right length
+var optionStart = 4, optionEnd = 65+optionStart+optionLength-1;
+let charOptSrt = char(optionEnd-optionLength+1), charOptEnd = char(optionEnd), charEnd = char(65+desCol-1);
 // \o> Edit Me <o/
 var correctColor = "#29d57b";
 var green = "#29d57b", tan = "#faefcf", blue = "#f0f8ff", black = "#000000";
 
+//cell, name, col, width
+const header = [
+  ["A", "Question Type",               1, 150], 
+  ["B", "Question",                    2, 200],
+  ["C", "Instructions",                3, 200],
+  ["D", "Points",                      4],
+  // options
+  [char(optionEnd+1), "Required?",      optionEnd+1-65+1],
+  [char(optionEnd+2), "Other?",         optionEnd+2-65+1],
+  [char(optionEnd+3), "Correct Text",   optionEnd+3-65+1, 200],
+  [char(optionEnd+4), "Incorrect Text", optionEnd+4-65+1, 200],
+  [char(optionEnd+5), "URL / ID",       optionEnd+5-65+1],
+];
+const basic = ["HCENTER", "VCENTER"];
+function char(x) {
+  return String.fromCharCode(x);
+}
 function onInstall(e) {
   onOpen(e);
 }
@@ -38,6 +56,9 @@ function createTemplate() {
   ss.getRange(1, 1, desRow, desCol).setDataValidation(null); //clears data formatting so you dont need to create a new sheet
   while(ss.getImages().length>0) ss.getImages()[0].remove(); //removes all images in the sheet
 
+  const options = ["MC", "CHECKBOX", "DROPDOWN", "SHORTANSWER", "PARAGRAPH", "PAGEBREAK", "HEADER", "IMAGE", "IMAGE-DRIVE", "VIDEO"];
+  const bool = ["TRUE", "FALSE"]; 
+
   //info to fill in/use
   ss.getRange("A1").setValue("Form Title:");
   ss.getRange("A2").setValue("Form Desciption:");
@@ -48,85 +69,81 @@ function createTemplate() {
   ss.getRange("C2").setValue("Public URL:");
   ss.getRange("C3").setValue("Private URL:");
   ss.getRange("C4").setValue("Choose a random subset of questions based on category");
+  ss.getRange("C4:C5").merge();
+  setStrategy("C4", ["WRAP"]);
 
   //various boolean fields
   ss.getRange("E1").setValue("One Response per User?");
   ss.getRange("E2").setValue("Can Edit Response?");
   ss.getRange("E3").setValue("Collects Email?");
-  ss.getRange("E4").setValue("# of MC:");
-  ss.getRange("E5").setValue("# of SHORTANSWER:");
+  setValidation("F1:F3", bool);
   ss.getRange("G1").setValue("Progress Bar?");
   ss.getRange("G2").setValue("Link to Respond Again?");
   ss.getRange("G3").setValue("Publishing Summary?");
+  setValidation("H1:H3", bool);
+
+  //random subset of questions
+  ss.getRange("E4").setValue("# of MC:");
+  ss.getRange("E5").setValue("# of SHORTANSWER:");
   ss.getRange("G4").setValue("# of CHECKBOX:");
   ss.getRange("G5").setValue("# of PARAGRAPH:");
 
-  //question header characters
-  let charOther = String.fromCharCode(65+optionStart-2);
-  let charReq = String.fromCharCode(65+optionStart-1); 
-  let optStart = String.fromCharCode(65+optionStart);
-  let optEnd = String.fromCharCode(65+optionStart+optionLength-1);
-
-  ss.getRange("A"+headerSize).setValue("Question Type");
-  ss.getRange("B"+headerSize).setValue("Question");
-  ss.getRange("C"+headerSize).setValue("Instructions");
-  ss.getRange("D"+headerSize).setValue("Points");
-  ss.getRange("E"+headerSize).setValue("Correct Text");
-  ss.getRange("F"+headerSize).setValue("Incorrect Text");
-  ss.getRange("G"+headerSize).setValue("URL/ID");
-  ss.getRange(charOther+headerSize).setValue("Other?");
-  ss.getRange(charReq+headerSize).setValue("Required?");
-  ss.getRange(optStart+headerSize+":"+optEnd+headerSize).setValue("OPTION");
-
-  //cell width formatting
-  ss.setFrozenRows(headerSize); ss.setFrozenColumns(4);
-  setSize([headerSize], 50, "R");
-  setSize([1, 7], 150, "C");
-  setSize([2, 3, 5, 6], 200, "C");
-  ss.setColumnWidths(optionStart+1, optionLength, 150);
-
-  //cell align formatting
-  setStrategy(["A1:"+optEnd+curRow, "C4"], ["WRAP"]);
-  setStrategy(["A1:"+optEnd+curRow], ["VTOP"]);
-  setStrategy(["A1:"+optEnd+curRow], ["HLEFT"]);
-  setStrategy(["A"+(headerSize+1)+":A"+curRow, headerSize+":"+headerSize, "F1:F5", "H1:H5", "D"+(headerSize+1)+":D"+curRow,
-    charOther+(headerSize+1)+":"+charOther+curRow, charReq+(headerSize+1)+":"+charReq+curRow], ["HCENTER", "VCENTER"]);
-  setStrategy(["D1:D3", "G"+(headerSize+1)+":G"+curRow], ["CLIP"]);
-
-  //data validation //https://developers.google.com/apps-script/reference/spreadsheet/data-validation-builder#setAllowInvalid
-  const options = ["MC", "CHECKBOX", "DROPDOWN", "SHORTANSWER", "PARAGRAPH", "PAGEBREAK", "HEADER", "IMAGE", "IMAGE-DRIVE", "VIDEO"];
-  const bool = ["TRUE", "FALSE"]; 
-  setValidation("F1:F3", bool);
-  setValidation("H1:H3", bool);
-  setValidation("A"+(headerSize+1)+":A"+curRow, options); //question type
-  setValidation(charOther+(headerSize+1)+":"+charOther+curRow, bool); //other?
-  setValidation(charReq+(headerSize+1)+":"+charReq+curRow, bool); //required?
-
-  //misc
-  ss.getRange("C4:C5").merge(); ss.getRange("D4:D5").merge();
+  //kinda related to ^^^
   let src = UrlFetchApp.fetch("https://imgur.com/QSzRPRL.png").getContent();
   ss.insertImage(Utilities.newBlob(src, "image/png", "aName"), 4, 4, 28, -2);
+  ss.getRange("D4:D5").merge();
+  setStrategy("F1:F5", basic); setStrategy("H1:H5", basic);
+  
+  //header info
+  ss.setRowHeight(headerSize, 50);
+  for (let i=0;i<header.length;i++) {
+    ss.getRange(header[i][0]+headerSize).setValue(header[i][1]);
+  } ss.getRange(charOptSrt+headerSize+":"+charOptEnd+headerSize).setValue("OPTION");
 
-  //UI formating
+  //validations
+  for (let i=0;i<header.length;i++) {
+    if(header[i][1]==="Question Type") setValidation(header[i][0]+(headerSize+1)+":"+header[i][0]+curRow, options);
+    if(header[i][1]==="Required?") setValidation(header[i][0]+(headerSize+1)+":"+header[i][0]+curRow, bool);
+    if(header[i][1]==="Other?") setValidation(header[i][0]+(headerSize+1)+":"+header[i][0]+curRow, bool);
+  }
+
+  //cell width formatting
+  for (let i=0;i<header.length;i++) {
+    if(header[i][1]==="Question Type" ||
+        header[i][1]==="Question" ||
+        header[i][1]==="Instructions" || 
+        header[i][1]==="Correct Text" ||
+        header[i][1]==="Incorrect Text") ss.setColumnWidth(header[i][2], header[i][3]);
+  } ss.setColumnWidths(optionStart+1, optionLength, 175)
+
+  //general formatting
+  setStrategy("A1:"+charEnd+curRow, ["WRAP", "VTOP", "HLEFT"]);
+  for (let i=0;i<header.length;i++) {
+    let x = header[i][0]+(headerSize+1)+":"+header[i][0]+curRow;
+    if(header[i][1]==="Question Type" ||
+        header[i][1]==="Points" ||
+        header[i][1]==="Required?" ||
+        header[i][1]==="Other?") setStrategy(x, basic);
+    if(header[i][1]==="URL / ID") setStrategy(x, ["CLIP"]);
+  } 
+  
+  //dunno how to categorize these
+  setStrategy(headerSize+":"+headerSize, basic);
+  setStrategy("D1:D3", ["CLIP"]);
+
+  //colors
+  ss.getRange("A1:"+charEnd+curRow).setBackground(tan);
+  ss.getRange(headerSize+":"+headerSize).setBackground(green);
+  ss.getRange("A"+(headerSize+1)+":"+charEnd+curRow).setBackground(blue);
+  ss.getRange("B3").setBackground(correctColor);
+
+  //misc
+  ss.setFrozenRows(headerSize); ss.setFrozenColumns(4);
+  setFormat(["A1:A2", "C1:C3", "E1:E3", "G1:G3", headerSize+":"+headerSize], "bold");
+  setFormat(["A1:A2", "C1:C3", headerSize+":"+headerSize], 12);
   //top, left, bottom, right, vertical, horizontal, color, style)
   ss.getRange("B3").setBorder(true, true, true, true, false, false, black, SpreadsheetApp.BorderStyle.SOLID_MEDIUM);
   ss.getRange(headerSize+":"+headerSize).setBorder(true, false, true, false, false, false, black, SpreadsheetApp.BorderStyle.SOLID_MEDIUM);
-  ss.getRange("A1:"+optEnd+curRow).setBackground(tan);
-  ss.getRange(headerSize+":"+headerSize).setBackground(green);
-  ss.getRange("A"+(headerSize+1)+":"+optEnd+curRow).setBackground(blue);
-  ss.getRange("B3").setBackground(correctColor);
-
-  setFormat(["A1:A2", "C1:C3", "E1:E3", "G1:G3", headerSize+":"+headerSize], "bold");
-  setFormat(["A1:A2", "C1:C3", headerSize+":"+headerSize], 12);
-
-  //very "hacky" solution for "locking" cells from being edited
-  // ss.getRange("G1").setValue("H1 and H2 are locked");
-  // const blank = [""];  
-  // ss.getRange("H1:H2").setDataValidation(SpreadsheetApp.newDataValidation()
-  //   .setAllowInvalid(false).requireValueInList(blank, false).build());
-  // const tmp = [ss.getRange("A1").getDisplayValue()];
-  // ss.getRange("A1").setDataValidation(SpreadsheetApp.newDataValidation()
-  //   .setAllowInvalid(false).requireValueInList(tmp, false).build());
 }
 function setSize(range, size, letter) {
   for (let i=0;i<range.length;i++) {
@@ -135,15 +152,13 @@ function setSize(range, size, letter) {
   }
 }
 function setStrategy(range, type) {
-  for (let i=0;i<range.length;i++) {
-    for (let j=0;j<type.length;j++) {
-      if(type[j]==="WRAP") ss.getRange(range[i]).setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP);
-      else if(type[j]==="CLIP") ss.getRange(range[i]).setWrapStrategy(SpreadsheetApp.WrapStrategy.CLIP);
-      else if(type[j]==="VTOP") ss.getRange(range[i]).setVerticalAlignment("top");
-      else if(type[j]==="VCENTER") ss.getRange(range[i]).setVerticalAlignment("middle");
-      else if(type[j]==="HLEFT") ss.getRange(range[i]).setHorizontalAlignment("left");
-      else if(type[j]==="HCENTER") ss.getRange(range[i]).setHorizontalAlignment("center");
-    }
+  for (let i=0;i<type.length;i++) {
+    if(type[i]==="WRAP") ss.getRange(range).setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP);
+    else if(type[i]==="CLIP") ss.getRange(range).setWrapStrategy(SpreadsheetApp.WrapStrategy.CLIP);
+    else if(type[i]==="VTOP") ss.getRange(range).setVerticalAlignment("top");
+    else if(type[i]==="VCENTER") ss.getRange(range).setVerticalAlignment("middle");
+    else if(type[i]==="HLEFT") ss.getRange(range).setHorizontalAlignment("left");
+    else if(type[i]==="HCENTER") ss.getRange(range).setHorizontalAlignment("center");
   }
 }
 function setValidation(range, list) {
@@ -246,22 +261,29 @@ function setUpQuestion(i) {
   if(data[i][1]!=='') question.setTitle(data[i][1]);
   if(data[i][2]!=='') question.setHelpText(data[i][2]);
   let type = question.getType();
+  let req = find("Required?"), other = find("Other?"), inc = find("Incorrect Text"), cor = find("Correct Text");
+  ss.getRange("C10").setValue(req+" "+other+" "+inc+" "+cor);
   for (let j=0;j<visual.length;j++) { //Visuals (Image + Video)
     if(type===visual[j]) formatVisual();
   }
   for (let j=0;j<choices.length;j++) { //Adding options + feedback
     if(type===choices[j]) {
       addOptions(i);
-      if(data[i][4]!=='') question.setFeedbackForCorrect(FormApp.createFeedback().setText(data[i][4]).build());
-      if(data[i][5]!=='') question.setFeedbackForIncorrect(FormApp.createFeedback().setText(data[i][5]).build());
-      if(data[i][optionStart-2]!=='' && type!=FormApp.ItemType.LIST) question.showOtherOption(data[i][optionStart-2]);
+      if(data[i][other-1]!=='' && type!=FormApp.ItemType.LIST) question.showOtherOption(data[i][other-1]);
+      if(data[i][cor-1]!=='') question.setFeedbackForCorrect(FormApp.createFeedback().setText(data[i][cor-1]).build());
+      if(data[i][inc-1]!=='') question.setFeedbackForIncorrect(FormApp.createFeedback().setText(data[i][inc-1]).build());
     }
   }
   for (let j=0;j<mix.length;j++) { //Adding points + setting required
     if(type===mix[j]) {
       if(data[i][3]!=='') question.setPoints(data[i][3]);
-      if(data[i][optionStart-1]!=='') question.setRequired(data[i][optionStart-1]);
+      if(data[i][req-1]!=='') question.setRequired(data[i][req-1]);
     }
+  }
+}
+function find(x) {
+  for (let i=0;i<header.length;i++) {
+    if(header[i][1]===x) return header[i][2];
   }
 }
 function addOptions(i) {
