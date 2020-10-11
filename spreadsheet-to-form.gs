@@ -262,7 +262,6 @@ function setUpQuestion(i) {
   if(data[i][2]!=='') question.setHelpText(data[i][2]);
   let type = question.getType();
   let req = find("Required?"), other = find("Other?"), inc = find("Incorrect Text"), cor = find("Correct Text");
-  ss.getRange("C10").setValue(req+" "+other+" "+inc+" "+cor);
   for (let j=0;j<visual.length;j++) { //Visuals (Image + Video)
     if(type===visual[j]) formatVisual();
   }

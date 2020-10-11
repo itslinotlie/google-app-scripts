@@ -186,3 +186,7 @@ An archive of the previous code versions
 ### Oct 6
 <img src="https://imgur.com/9VrMiwi.png">
 - UI revamp
+
+### Oct 9
+<img src="https://imgur.com/92dmpeb.png">
+- Reorganize header locations
