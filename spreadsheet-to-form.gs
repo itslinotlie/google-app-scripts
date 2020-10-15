@@ -8,30 +8,30 @@ var question;
 // \o> Edit Me <o/
 var optionLength = 5;
 // \o> Edit Me <o/
-var desRow = 21, desCol = 9+optionLength;
+var desRow = 21, desCol = 9+optionLength; //change if you add more columns
 var headerSize = 6; //how many rows before question type starts
-var optionStart = 4, optionEnd = 65+optionStart+optionLength-1;
-let charOptSrt = char(optionEnd-optionLength+1), charOptEnd = char(optionEnd), charEnd = char(65+desCol-1);
+var optionStart = 4, optionEnd = optionStart+optionLength;
+let charOptSrt = char(optionEnd-optionLength+1), charOptEnd = char(optionEnd), charEnd = char(desCol);
 // \o> Edit Me <o/
 var correctColor = "#29d57b";
 var green = "#29d57b", tan = "#faefcf", blue = "#f0f8ff", black = "#000000";
 
 //cell, name, col, width
 const header = [
-  ["A", "Question Type",               1, 150], 
-  ["B", "Question",                    2, 200],
-  ["C", "Instructions",                3, 200],
-  ["D", "Points",                      4],
+  ["A", "Question Type",                1, 150], 
+  ["B", "Question",                     2, 200],
+  ["C", "Instructions",                 3, 200],
+  ["D", "Points",                       4],
   // options
-  [char(optionEnd+1), "Required?",      optionEnd+1-65+1],
-  [char(optionEnd+2), "Other?",         optionEnd+2-65+1],
-  [char(optionEnd+3), "Correct Text",   optionEnd+3-65+1, 200],
-  [char(optionEnd+4), "Incorrect Text", optionEnd+4-65+1, 200],
-  [char(optionEnd+5), "URL / ID",       optionEnd+5-65+1],
+  [char(optionEnd+1), "Required?",      optionEnd+1],
+  [char(optionEnd+2), "Other?",         optionEnd+2],
+  [char(optionEnd+3), "Correct Text",   optionEnd+3, 200],
+  [char(optionEnd+4), "Incorrect Text", optionEnd+4, 200],
+  [char(optionEnd+5), "URL / ID",       optionEnd+5],
 ];
 const basic = ["HCENTER", "VCENTER"];
 function char(x) {
-  return String.fromCharCode(x);
+  return String.fromCharCode(64+x);
 }
 function onInstall(e) {
   onOpen(e);
@@ -56,13 +56,15 @@ function createTemplate() {
   ss.getRange(1, 1, desRow, desCol).setDataValidation(null); //clears data formatting so you dont need to create a new sheet
   while(ss.getImages().length>0) ss.getImages()[0].remove(); //removes all images in the sheet
 
-  const options = ["MC", "CHECKBOX", "DROPDOWN", "SHORTANSWER", "PARAGRAPH", "PAGEBREAK", "HEADER", "IMAGE", "IMAGE-DRIVE", "VIDEO"];
+  const options = ["MC", "CHECKBOX", "DROPDOWN", "MCGRID", "CHECKGRID", "SHORTANSWER", "PARAGRAPH", "PAGEBREAK", "HEADER", "IMAGE", "IMAGE-DRIVE", "VIDEO"];
   const bool = ["TRUE", "FALSE"]; 
 
   //info to fill in/use
   ss.getRange("A1").setValue("Form Title:");
   ss.getRange("A2").setValue("Form Desciption:");
   ss.getRange("A3").setValue("Highlight Color");
+  ss.getRange("A4").setValue("Alerts");
+  setValidation("B4", bool); ss.getRange("B4").setValue("TRUE");
   ss.getRange("C1").setValue("Folder ID:");
   // \o> Edit Me <o/
   // ss.getRange("D1").setValue("1D2yMTtKfq9ey5awuTbEiHXViCHDYgejH");
@@ -130,6 +132,7 @@ function createTemplate() {
   //dunno how to categorize these
   setStrategy(headerSize+":"+headerSize, basic);
   setStrategy("D1:D3", ["CLIP"]);
+  setStrategy("B4", basic);
 
   //colors
   ss.getRange("A1:"+charEnd+curRow).setBackground(tan);
@@ -144,6 +147,9 @@ function createTemplate() {
   //top, left, bottom, right, vertical, horizontal, color, style)
   ss.getRange("B3").setBorder(true, true, true, true, false, false, black, SpreadsheetApp.BorderStyle.SOLID_MEDIUM);
   ss.getRange(headerSize+":"+headerSize).setBorder(true, false, true, false, false, false, black, SpreadsheetApp.BorderStyle.SOLID_MEDIUM);
+
+  SpreadsheetApp.getUi().prompt("A", "B", ui.ButtonSet.YES_NO);
+  SpreadsheetApp.getUi().alert("C", "D", ui.ButtonSet.YES_NO);
 }
 function setSize(range, size, letter) {
   for (let i=0;i<range.length;i++) {
@@ -224,6 +230,8 @@ function createForm() {
     if(x==="MC") question = form.addMultipleChoiceItem();
     else if(x==="CHECKBOX") question = form.addCheckboxItem();
     else if(x==="DROPDOWN") question = form.addListItem();
+    else if(x==="MCGRID") question = form.addGridItem();  
+    else if(x==="CHECKGRID") question = form.addCheckboxGridItem();
     else if(x==="SHORTANSWER") question = form.addTextItem();
     else if(x==="PARAGRAPH") question = form.addParagraphTextItem();
     else if(x==="PAGEBREAK") question = form.addPageBreakItem();
@@ -256,6 +264,7 @@ const choices = [FormApp.ItemType.CHECKBOX, FormApp.ItemType.MULTIPLE_CHOICE, Fo
 const visual = [FormApp.ItemType.IMAGE, FormApp.ItemType.VIDEO];
 const mix = [FormApp.ItemType.CHECKBOX, FormApp.ItemType.MULTIPLE_CHOICE,
   FormApp.ItemType.PARAGRAPH_TEXT, FormApp.ItemType.TEXT, FormApp.ItemType.LIST,
+  FormApp.ItemType.CHECKBOX_GRID, FormApp.ItemType.GRID
 ];
 function setUpQuestion(i) {
   if(data[i][1]!=='') question.setTitle(data[i][1]);
@@ -297,6 +306,14 @@ function addOptions(i) {
 }
 function formatVisual() {
   question.setAlignment(FormApp.Alignment.CENTER).setWidth(600);
+}
+function onEdit(e) { //alerts user if they checked GRID that row below should be void
+  let row = e.range.getRow();
+  let col = char(e.range.getColumn());
+  if(col!=="A" || row<=headerSize) return;
+  if((ss.getRange(col+row).getValue()==="MCGRID" || ss.getRange(col+row).getValue()==="CHECKGRID") && data[3][1]) 
+    SpreadsheetApp.getUi().alert("Friendly Reminder", "Remember that the cell below "+col+row+" should be the columns for the "
+      +ss.getRange(col+row).getValue()+". You can turn this alert off by filling in False in cell B4", SpreadsheetApp.getUi().ButtonSet.OK);
 }
 function linkDoc() { //copied from https://support.google.com/docs/thread/16869830?hl=en&msgid=17047454 (beyond the scope of this project)
   var url = "https://github.com/itslinotlie/google-app-scripts";
