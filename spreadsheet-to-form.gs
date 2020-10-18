@@ -16,8 +16,8 @@ let charOptSrt = char(optionEnd-optionLength+1), charOptEnd = char(optionEnd), c
 var correctColor = "#29d57b";
 var green = "#29d57b", tan = "#faefcf", blue = "#f0f8ff", black = "#000000";
 
-//cell, name, col, width
-const header = [
+//arrays
+const header = [ //cell, name, col, width
   ["A", "Question Type",                1, 150], 
   ["B", "Question",                     2, 200],
   ["C", "Instructions",                 3, 200],
@@ -29,18 +29,31 @@ const header = [
   [char(optionEnd+4), "Incorrect Text", optionEnd+4, 200],
   [char(optionEnd+5), "URL / ID",       optionEnd+5],
 ];
+const options = ["MC", "CHECKBOX", "DROPDOWN", "MCGRID", "CHECKGRID", "SHORTANSWER", 
+                  "PARAGRAPH", "PAGEBREAK", "HEADER", "IMAGE", "IMAGE-DRIVE", "VIDEO"];
 const basic = ["HCENTER", "VCENTER"];
-function char(x) {
-  return String.fromCharCode(64+x);
-}
+const bool = ["TRUE", "FALSE"];
+
+//abbreviations
+let SA = SpreadsheetApp, UI = SA.getUi();
+let IT = FormApp.ItemType;
+
 function onInstall(e) {
   onOpen(e);
 }
 function onOpen(e) {
-  let menu = SpreadsheetApp.getUi().createMenu("Forms");
+  let menu = UI.createMenu("Forms");
   menu.addItem("Initilize Spreadsheet", "createTemplate").addToUi();
   menu.addItem("Create Google Form", "createForm").addToUi();
   menu.addItem("Link to Documentation", "linkDoc").addToUi();
+  SA.getActiveSpreadsheet().toast("Remember to check the GitHub documentation or YouTube video for any help/clarifications. Have a good day :)", "Hello fellow human being");
+}
+function onEdit(e) { //alerts user if they checked GRID that row below should be void
+  let row = e.range.getRow(), col = char(e.range.getColumn()), range = col+row;
+  if(col!=="A" || row<=headerSize) return;
+  if((ss.getRange(range).getValue()==="MCGRID" || ss.getRange(range).getValue()==="CHECKGRID") && data[3][1]) 
+    UI.alert("Friendly Reminder", "Remember that the cell below "+range+" should be the columns for the "
+      +ss.getRange(range).getValue()+" and nothing else. You can turn alerts off by setting the B4 cell to FALSE", UI.ButtonSet.OK);
 }
 function createTemplate() {
   //setting up spreadsheet dimensions
@@ -55,9 +68,6 @@ function createTemplate() {
   ss.setRowHeights(1, curRow, 21); ss.setColumnWidths(1, curCol, 100); //resize cells to default cell size
   ss.getRange(1, 1, desRow, desCol).setDataValidation(null); //clears data formatting so you dont need to create a new sheet
   while(ss.getImages().length>0) ss.getImages()[0].remove(); //removes all images in the sheet
-
-  const options = ["MC", "CHECKBOX", "DROPDOWN", "MCGRID", "CHECKGRID", "SHORTANSWER", "PARAGRAPH", "PAGEBREAK", "HEADER", "IMAGE", "IMAGE-DRIVE", "VIDEO"];
-  const bool = ["TRUE", "FALSE"]; 
 
   //info to fill in/use
   ss.getRange("A1").setValue("Form Title:");
@@ -145,37 +155,11 @@ function createTemplate() {
   setFormat(["A1:A2", "C1:C3", "E1:E3", "G1:G3", headerSize+":"+headerSize], "bold");
   setFormat(["A1:A2", "C1:C3", headerSize+":"+headerSize], 12);
   //top, left, bottom, right, vertical, horizontal, color, style)
-  ss.getRange("B3").setBorder(true, true, true, true, false, false, black, SpreadsheetApp.BorderStyle.SOLID_MEDIUM);
-  ss.getRange(headerSize+":"+headerSize).setBorder(true, false, true, false, false, false, black, SpreadsheetApp.BorderStyle.SOLID_MEDIUM);
+  ss.getRange("B3").setBorder(true, true, true, true, false, false, black, SA.BorderStyle.SOLID_MEDIUM);
+  ss.getRange(headerSize+":"+headerSize).setBorder(true, false, true, false, false, false, black, SA.BorderStyle.SOLID_MEDIUM);
 
-  SpreadsheetApp.getUi().prompt("A", "B", ui.ButtonSet.YES_NO);
-  SpreadsheetApp.getUi().alert("C", "D", ui.ButtonSet.YES_NO);
-}
-function setSize(range, size, letter) {
-  for (let i=0;i<range.length;i++) {
-    if(letter==="R") ss.setRowHeight(range[i], size);
-    else if(letter==="C") ss.setColumnWidth(range[i], size);
-  }
-}
-function setStrategy(range, type) {
-  for (let i=0;i<type.length;i++) {
-    if(type[i]==="WRAP") ss.getRange(range).setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP);
-    else if(type[i]==="CLIP") ss.getRange(range).setWrapStrategy(SpreadsheetApp.WrapStrategy.CLIP);
-    else if(type[i]==="VTOP") ss.getRange(range).setVerticalAlignment("top");
-    else if(type[i]==="VCENTER") ss.getRange(range).setVerticalAlignment("middle");
-    else if(type[i]==="HLEFT") ss.getRange(range).setHorizontalAlignment("left");
-    else if(type[i]==="HCENTER") ss.getRange(range).setHorizontalAlignment("center");
-  }
-}
-function setValidation(range, list) {
-  ss.getRange(range).setDataValidation(SpreadsheetApp.newDataValidation()
-    .setAllowInvalid(false).requireValueInList(list, true).build());
-}
-function setFormat(range, type) {
-  for (let i=0;i<range.length;i++) {
-    if(type==="bold") ss.getRange(range[i]).setFontWeight("bold");
-    else if(!isNaN(type)) ss.getRange(range[i]).setFontSize(type);
-  }
+  //happy message :)
+  SA.getActiveSpreadsheet().toast("Remember to check the GitHub documentation or YouTube video for any help/clarifications. Have a good day :)", "Hello fellow human being");
 }
 function createForm() {
   let row = ss.getDataRange().getNumRows();
@@ -254,18 +238,14 @@ function createForm() {
     }
   }
 }
-function shuffle(arr) { //Fisher-Yates shuffle
-  for (let i=arr.length-1;i>0;i--) {
-    let j = Math.floor(Math.random()*(i+1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-}
-const choices = [FormApp.ItemType.CHECKBOX, FormApp.ItemType.MULTIPLE_CHOICE, FormApp.ItemType.LIST];
-const visual = [FormApp.ItemType.IMAGE, FormApp.ItemType.VIDEO];
-const mix = [FormApp.ItemType.CHECKBOX, FormApp.ItemType.MULTIPLE_CHOICE,
-  FormApp.ItemType.PARAGRAPH_TEXT, FormApp.ItemType.TEXT, FormApp.ItemType.LIST,
-  FormApp.ItemType.CHECKBOX_GRID, FormApp.ItemType.GRID
+const choices = [IT.CHECKBOX, IT.MULTIPLE_CHOICE, IT.LIST];
+const visual = [IT.IMAGE, IT.VIDEO];
+const mix = [IT.CHECKBOX, IT.MULTIPLE_CHOICE,
+  IT.PARAGRAPH_TEXT, IT.TEXT, IT.LIST,
 ];
+const twoD = [IT.CHECKBOX_GRID, IT.GRID];
+//Rant: so you can set points for shortanswers, but not the answer key. Okay I can accept that
+//      ,but you cant set points for grid items... at least keep it consistent google...
 function setUpQuestion(i) {
   if(data[i][1]!=='') question.setTitle(data[i][1]);
   if(data[i][2]!=='') question.setHelpText(data[i][2]);
@@ -277,7 +257,7 @@ function setUpQuestion(i) {
   for (let j=0;j<choices.length;j++) { //Adding options + feedback
     if(type===choices[j]) {
       addOptions(i);
-      if(data[i][other-1]!=='' && type!=FormApp.ItemType.LIST) question.showOtherOption(data[i][other-1]);
+      if(data[i][other-1]!=='' && type!=IT.LIST) question.showOtherOption(data[i][other-1]);
       if(data[i][cor-1]!=='') question.setFeedbackForCorrect(FormApp.createFeedback().setText(data[i][cor-1]).build());
       if(data[i][inc-1]!=='') question.setFeedbackForIncorrect(FormApp.createFeedback().setText(data[i][inc-1]).build());
     }
@@ -288,10 +268,11 @@ function setUpQuestion(i) {
       if(data[i][req-1]!=='') question.setRequired(data[i][req-1]);
     }
   }
-}
-function find(x) {
-  for (let i=0;i<header.length;i++) {
-    if(header[i][1]===x) return header[i][2];
+  for (let j=0;j<twoD.length;j++) {
+    if(type==twoD[j]) {
+      addGrid(i);
+      if(data[i][req-1]!=='') question.setRequired(data[i][req-1]);
+    }
   }
 }
 function addOptions(i) {
@@ -304,19 +285,63 @@ function addOptions(i) {
   if(arr.length===0) return;
   question.setChoices(arr);
 }
+function addGrid(x) {
+  for(let i=x;i<=x+1;i++) {
+    const arr = [];
+    for(let j=optionStart;j<optionStart+optionLength;j++) {
+      if(ss.getRange(i+1, j+1, 1, 1).getValue()==='') continue;
+      arr.push(data[i][j]);
+    }
+    if(data[i][0]==="MCGRID" || data[i][0]==="CHECKGRID") question.setRows(arr);
+    else question.setColumns(arr);
+  }
+}
 function formatVisual() {
   question.setAlignment(FormApp.Alignment.CENTER).setWidth(600);
 }
-function onEdit(e) { //alerts user if they checked GRID that row below should be void
-  let row = e.range.getRow();
-  let col = char(e.range.getColumn());
-  if(col!=="A" || row<=headerSize) return;
-  if((ss.getRange(col+row).getValue()==="MCGRID" || ss.getRange(col+row).getValue()==="CHECKGRID") && data[3][1]) 
-    SpreadsheetApp.getUi().alert("Friendly Reminder", "Remember that the cell below "+col+row+" should be the columns for the "
-      +ss.getRange(col+row).getValue()+". You can turn this alert off by filling in False in cell B4", SpreadsheetApp.getUi().ButtonSet.OK);
+//helper functions
+function char(x) {
+  return String.fromCharCode(64+x);
+}
+function setSize(range, size, letter) {
+  for (let i=0;i<range.length;i++) {
+    if(letter==="R") ss.setRowHeight(range[i], size);
+    else if(letter==="C") ss.setColumnWidth(range[i], size);
+  }
+}
+function setStrategy(range, type) {
+  for (let i=0;i<type.length;i++) {
+    if(type[i]==="WRAP") ss.getRange(range).setWrapStrategy(SA.WrapStrategy.WRAP);
+    else if(type[i]==="CLIP") ss.getRange(range).setWrapStrategy(SA.WrapStrategy.CLIP);
+    else if(type[i]==="VTOP") ss.getRange(range).setVerticalAlignment("top");
+    else if(type[i]==="VCENTER") ss.getRange(range).setVerticalAlignment("middle");
+    else if(type[i]==="HLEFT") ss.getRange(range).setHorizontalAlignment("left");
+    else if(type[i]==="HCENTER") ss.getRange(range).setHorizontalAlignment("center");
+  }
+}
+function setValidation(range, list) {
+  ss.getRange(range).setDataValidation(SpreadsheetApp.newDataValidation()
+    .setAllowInvalid(false).requireValueInList(list, true).build());
+}
+function setFormat(range, type) {
+  for (let i=0;i<range.length;i++) {
+    if(type==="bold") ss.getRange(range[i]).setFontWeight("bold");
+    else if(!isNaN(type)) ss.getRange(range[i]).setFontSize(type);
+  }
+}
+function shuffle(arr) { //Fisher-Yates shuffle
+  for (let i=arr.length-1;i>0;i--) {
+    let j = Math.floor(Math.random()*(i+1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+function find(x) {
+  for (let i=0;i<header.length;i++) {
+    if(header[i][1]===x) return header[i][2];
+  }
 }
 function linkDoc() { //copied from https://support.google.com/docs/thread/16869830?hl=en&msgid=17047454 (beyond the scope of this project)
-  var url = "https://github.com/itslinotlie/google-app-scripts";
+  var url = "https://github.com/itslinotlie/google-app-scripts/blob/master/spreadsheet-to-form.md";
   var html = HtmlService.createHtmlOutput(
     '<html>'
   + '  <script>'
@@ -333,5 +358,5 @@ function linkDoc() { //copied from https://support.google.com/docs/thread/168698
   + '  <body style="word-break:break-word;font-family:sans-serif;">Failed to open automatically. <a href="'+url+'" target="_blank" onclick="window.close()">Click here to proceed</a>.</body>'
   + '  <script>google.script.host.setHeight(40);google.script.host.setWidth(410)</script>'
   + '</html>').setWidth(90).setHeight(1);
-  SpreadsheetApp.getUi().showModalDialog(html, "Redirecting ...");
+  UI.showModalDialog(html, "Redirecting ...");
 }
