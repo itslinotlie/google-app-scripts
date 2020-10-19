@@ -17,7 +17,7 @@ var correctColor = "#29d57b";
 var green = "#29d57b", tan = "#faefcf", blue = "#f0f8ff", black = "#000000";
 
 //arrays
-const header = [ //cell, name, col, width
+const header = [ //cell, name, col (1-indexed), width
   ["A", "Question Type",                1, 150], 
   ["B", "Question",                     2, 200],
   ["C", "Instructions",                 3, 200],
@@ -37,6 +37,10 @@ const bool = ["TRUE", "FALSE"];
 //abbreviations
 let SA = SpreadsheetApp, UI = SA.getUi();
 let IT = FormApp.ItemType;
+
+//numbers
+let req = find("Required?"), other = find("Other?"), 
+  inc = find("Incorrect Text"), cor = find("Correct Text"), url = find("URL / ID");
 
 function onInstall(e) {
   onOpen(e);
@@ -220,9 +224,9 @@ function createForm() {
     else if(x==="PARAGRAPH") question = form.addParagraphTextItem();
     else if(x==="PAGEBREAK") question = form.addPageBreakItem();
     else if(x==="HEADER") question = form.addSectionHeaderItem(); //these are stackable, but don't look the greatest
-    else if(x==="IMAGE") question = form.addImageItem().setImage(UrlFetchApp.fetch(data[i][6])); //imageItem's helptext dont show in Forms
-    else if(x==="IMAGE-DRIVE") question = form.addImageItem().setImage(DriveApp.getFileById(data[i][6]));
-    else if(x==="VIDEO") question = form.addVideoItem().setVideoUrl(data[i][6]);
+    else if(x==="IMAGE") question = form.addImageItem().setImage(UrlFetchApp.fetch(data[i][url-1])); //imageItem's helptext dont show in Forms
+    else if(x==="IMAGE-DRIVE") question = form.addImageItem().setImage(DriveApp.getFileById(data[i][url-1]));
+    else if(x==="VIDEO") question = form.addVideoItem().setVideoUrl(data[i][url-1]);
     setUpQuestion(i);
   }
   shuffle(arrRnd);
@@ -250,7 +254,6 @@ function setUpQuestion(i) {
   if(data[i][1]!=='') question.setTitle(data[i][1]);
   if(data[i][2]!=='') question.setHelpText(data[i][2]);
   let type = question.getType();
-  let req = find("Required?"), other = find("Other?"), inc = find("Incorrect Text"), cor = find("Correct Text");
   for (let j=0;j<visual.length;j++) { //Visuals (Image + Video)
     if(type===visual[j]) formatVisual();
   }
