@@ -232,12 +232,15 @@ function createForm() {
   shuffle(arrRnd);
   if(rnd) {
     for (let i=0;i<arrRnd.length;i++) {
-      let x = data[arrRnd[i]][0];
+      let x = data[arrRnd[i]][0], flag = true;
       if(x==='') continue;
-      if(x==="MC" && cntRnd[0]>0) question = form.addMultipleChoiceItem(), cntRnd[0]--;
-      else if(x==='CHECKBOX' && cntRnd[1]>0) question = form.addCheckboxItem(), cntRnd[1]--;
-      else if(x==='SHORTANSWER' && cntRnd[2]>0) question = form.addTextItem(), cntRnd[2]--;
-      else if(x==='PARAGRAPH' && cntRnd[3]>0) question = form.addParagraphTextItem(), cntRnd[3]--;
+      for (let j=0;j<cntRnd.length;j++) {
+        if(cntRnd[j]>0) flag = false;
+      } if(flag) break;
+      if(x==="MC" && cntRnd[0]>0) {question = form.addMultipleChoiceItem(); cntRnd[0]--;}
+      else if(x==='CHECKBOX' && cntRnd[1]>0) {question = form.addCheckboxItem(); cntRnd[1]--;}
+      else if(x==='SHORTANSWER' && cntRnd[2]>0) {question = form.addTextItem(); cntRnd[2]--;}
+      else if(x==='PARAGRAPH' && cntRnd[3]>0) {question = form.addParagraphTextItem(); cntRnd[3]--;}
       setUpQuestion(arrRnd[i]);
     }
   }
