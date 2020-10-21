@@ -10,24 +10,36 @@ var optionLength = 5;
 // \o> Edit Me <o/
 var desRow = 21, desCol = 9+optionLength; //change if you add more columns
 var headerSize = 6; //how many rows before question type starts
-var optionStart = 4, optionEnd = optionStart+optionLength;
+var optionStart = 2, optionEnd = optionStart+optionLength;
 let charOptSrt = char(optionEnd-optionLength+1), charOptEnd = char(optionEnd), charEnd = char(desCol);
 // \o> Edit Me <o/
 var correctColor = "#29d57b";
 var green = "#29d57b", tan = "#faefcf", blue = "#f0f8ff", black = "#000000";
 
 //arrays
+// const header = [ //cell, name, col (1-indexed), width
+//   ["A", "Question Type",                1, 150], 
+//   ["B", "Question",                     2, 200],
+//   ["C", "Instructions",                 3, 200],
+//   ["D", "Points",                       4],
+//   // options
+//   [char(optionEnd+1), "Required?",      optionEnd+1],
+//   [char(optionEnd+2), "Other?",         optionEnd+2],
+//   [char(optionEnd+3), "Correct Text",   optionEnd+3, 200],
+//   [char(optionEnd+4), "Incorrect Text", optionEnd+4, 200],
+//   [char(optionEnd+5), "URL / ID",       optionEnd+5],
+// ];
 const header = [ //cell, name, col (1-indexed), width
   ["A", "Question Type",                1, 150], 
   ["B", "Question",                     2, 200],
-  ["C", "Instructions",                 3, 200],
-  ["D", "Points",                       4],
   // options
-  [char(optionEnd+1), "Required?",      optionEnd+1],
-  [char(optionEnd+2), "Other?",         optionEnd+2],
-  [char(optionEnd+3), "Correct Text",   optionEnd+3, 200],
-  [char(optionEnd+4), "Incorrect Text", optionEnd+4, 200],
-  [char(optionEnd+5), "URL / ID",       optionEnd+5],
+  [char(optionEnd+1), "Points",   optionEnd+1],
+  [char(optionEnd+2), "URL / ID", optionEnd+2],
+  [char(optionEnd+3), "Required?",      optionEnd+3],
+  [char(optionEnd+4), "Other?",         optionEnd+4],
+  [char(optionEnd+5), "Instructions",   optionEnd+5, 200],
+  [char(optionEnd+6), "Correct Text",   optionEnd+6, 200],
+  [char(optionEnd+7), "Incorrect Text", optionEnd+7, 200],
 ];
 const options = ["MC", "CHECKBOX", "DROPDOWN", "MCGRID", "CHECKGRID", "SHORTANSWER", 
                   "PARAGRAPH", "PAGEBREAK", "HEADER", "IMAGE", "IMAGE-DRIVE", "VIDEO"];
@@ -39,8 +51,9 @@ let SA = SpreadsheetApp, UI = SA.getUi();
 let IT = FormApp.ItemType;
 
 //numbers
-let req = find("Required?"), other = find("Other?"), 
-  inc = find("Incorrect Text"), cor = find("Correct Text"), url = find("URL / ID");
+let req = find("Required?"), other = find("Other?"), instruc = find("Instructions"),
+  inc = find("Incorrect Text"), cor = find("Correct Text"), url = find("URL / ID"),
+  pnt = find("Points");
 
 function onInstall(e) {
   onOpen(e);
@@ -84,7 +97,7 @@ function createTemplate() {
   // ss.getRange("D1").setValue("1D2yMTtKfq9ey5awuTbEiHXViCHDYgejH");
   ss.getRange("C2").setValue("Public URL:");
   ss.getRange("C3").setValue("Private URL:");
-  ss.getRange("C4").setValue("Choose a random subset of questions based on category");
+  ss.getRange("C4").setValue("Random subset of questions based on category");
   ss.getRange("C4:C5").merge();
   setStrategy("C4", ["WRAP"]);
 
@@ -155,7 +168,7 @@ function createTemplate() {
   ss.getRange("B3").setBackground(correctColor);
 
   //misc
-  ss.setFrozenRows(headerSize); ss.setFrozenColumns(4);
+  ss.setFrozenRows(headerSize); ss.setFrozenColumns(2);
   setFormat(["A1:A2", "C1:C3", "E1:E3", "G1:G3", headerSize+":"+headerSize], "bold");
   setFormat(["A1:A2", "C1:C3", headerSize+":"+headerSize], 12);
   //top, left, bottom, right, vertical, horizontal, color, style)
@@ -255,7 +268,7 @@ const twoD = [IT.CHECKBOX_GRID, IT.GRID];
 //      ,but you cant set points for grid items... at least keep it consistent google...
 function setUpQuestion(i) {
   if(data[i][1]!=='') question.setTitle(data[i][1]);
-  if(data[i][2]!=='') question.setHelpText(data[i][2]);
+  if(data[i][instruc-1]!=='') question.setHelpText(data[i][instruc-1]);
   let type = question.getType();
   for (let j=0;j<visual.length;j++) { //Visuals (Image + Video)
     if(type===visual[j]) formatVisual();
@@ -263,19 +276,19 @@ function setUpQuestion(i) {
   for (let j=0;j<choices.length;j++) { //Adding options + feedback
     if(type===choices[j]) {
       addOptions(i);
-      if(data[i][other-1]!=='' && type!=IT.LIST) question.showOtherOption(data[i][other-1]);
+      if(data[i][other-1]!=='' && type!==IT.LIST) question.showOtherOption(data[i][other-1]);
       if(data[i][cor-1]!=='') question.setFeedbackForCorrect(FormApp.createFeedback().setText(data[i][cor-1]).build());
       if(data[i][inc-1]!=='') question.setFeedbackForIncorrect(FormApp.createFeedback().setText(data[i][inc-1]).build());
     }
   }
   for (let j=0;j<mix.length;j++) { //Adding points + setting required
     if(type===mix[j]) {
-      if(data[i][3]!=='') question.setPoints(data[i][3]);
+      if(data[i][pnt-1]!=='') question.setPoints(data[i][pnt-1]);
       if(data[i][req-1]!=='') question.setRequired(data[i][req-1]);
     }
   }
   for (let j=0;j<twoD.length;j++) {
-    if(type==twoD[j]) {
+    if(type===twoD[j]) {
       addGrid(i);
       if(data[i][req-1]!=='') question.setRequired(data[i][req-1]);
     }
