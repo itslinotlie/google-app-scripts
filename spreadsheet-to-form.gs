@@ -230,11 +230,11 @@ function createForm() {
     }
     if(x==="MC") question = form.addMultipleChoiceItem();
     else if(x==="CHECKBOX") question = form.addCheckboxItem();
-    else if(x==="DROPDOWN") question = form.addListItem();
     else if(x==="MCGRID") question = form.addGridItem();  
     else if(x==="CHECKGRID") question = form.addCheckboxGridItem();
     else if(x==="SHORTANSWER") question = form.addTextItem();
     else if(x==="PARAGRAPH") question = form.addParagraphTextItem();
+    else if(x==="DROPDOWN") question = form.addListItem();
     else if(x==="PAGEBREAK") question = form.addPageBreakItem();
     else if(x==="HEADER") question = form.addSectionHeaderItem(); //these are stackable, but don't look the greatest
     else if(x==="IMAGE") question = form.addImageItem().setImage(UrlFetchApp.fetch(data[i][url-1])); //imageItem's helptext dont show in Forms

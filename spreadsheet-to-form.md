@@ -20,6 +20,7 @@ Creating large amounts of Google Forms can quickly become tedious—especially w
 - [Reveal Additiaonal Form Info](#Revealinng-additional-Form-info)
 - [Short Public URLs](#Short-Public-URLs)
 - [Images in MC](#Including-Images-in-MC)
+- [GRID Items and Points](#Grid-no-Points)
 - [Answers for Text Responses](#Answers-for-Text-Responses)
 - [File Uploads](#File-Uploads)
 
@@ -116,6 +117,12 @@ With Google Scripts, short public URLs are unheard of. The only way to have the 
 <img src="https://imgur.com/pP7xvRG.png" alt="Pictures in MC" height=75%> 
 
 Another problem that can only be solved manually ): 
+
+### Grid no Points
+
+<img src="https://imgur.com/0SkL6QI.png" alt="Grid-no-point" height=75%>
+
+The inconsistencies with GAS's capabailites still amazes me. There is no option to assign point values (which makes sense) or a "correct answer" (which doesn't) for any grid items, as well as making questions mandatory to fill in. This will all have to be done manually in the private URL section. 
 
 ### Answers for Text Responses
 
