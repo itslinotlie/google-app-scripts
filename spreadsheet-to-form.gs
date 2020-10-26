@@ -41,8 +41,8 @@ const header = [ //cell, name, col (1-indexed), width
   [char(optionEnd+6), "Correct Text",   optionEnd+6, 200],
   [char(optionEnd+7), "Incorrect Text", optionEnd+7, 200],
 ];
-const options = ["MC", "CHECKBOX", "DROPDOWN", "MCGRID", "CHECKGRID", "SHORTANSWER", 
-                  "PARAGRAPH", "PAGEBREAK", "HEADER", "IMAGE", "IMAGE-DRIVE", "VIDEO"];
+const options = ["MC", "CHECKBOX", "MCGRID", "CHECKGRID", "SHORTANSWER", 
+                  "PARAGRAPH", "DROPDOWN", "PAGEBREAK", "HEADER", "IMAGE", "IMAGE-DRIVE", "VIDEO"];
 const basic = ["HCENTER", "VCENTER"];
 const bool = ["TRUE", "FALSE"];
 
@@ -311,8 +311,8 @@ function addGrid(x) {
       if(ss.getRange(i+1, j+1, 1, 1).getValue()==='') continue;
       arr.push(data[i][j]);
     }
-    if(data[i][0]==="MCGRID" || data[i][0]==="CHECKGRID") question.setRows(arr);
-    else question.setColumns(arr);
+    if(data[i][0]==="MCGRID" || data[i][0]==="CHECKGRID") question.setColumns(arr);
+    else question.setRows(arr);
   }
 }
 function formatVisual() {

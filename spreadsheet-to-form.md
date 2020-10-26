@@ -43,13 +43,18 @@ Creating large amounts of Google Forms can quickly become tedious—especially w
 |:-:|:-:|
 | MC | Multiple choice with only one option to choose from. The highlighted cell in the Spreadsheet will be the correct answer<br><img src="https://imgur.com/cXtwK86.jpg" alt="MC Screenshot" height=75%>|
 | CHECKBOX | Multiple choice with multiple options to choose from. The highlighted cell(s) in the Spreadsheet will be the correct answer (must be chosen simultanneously for points)<br><img src="https://imgur.com/MWPW1Pm.jpg" alt="CHECKBOX Screenshot" height=75%> |
-| DROPDOWN | Similiar to CHECKBOX, but you only need to pick one correct answer for points<br><img src="https://imgur.com/WGvHZAs.jpg" alt="MC Screenshot" height=75%> |
+| MCGRID* | The 2-dimensional version of MC.<br><img src="https://imgur.com/1LASfKi.jpg" alt="MCGRID Screenshot" height=75%> |
+| CHECKGRID* | The 2-diemnsional version of CHECKBOX.<br><img src="https://imgur.com/m1omhPx.jpg" alt="CHECKGRID Screenshot" height=75%> |
 | SHORTANSWER | Single-line text response<br><img src="https://imgur.com/CervVug.jpg" alt="SHORTANSWER Screenshot" height=75%> |
 | PARAGRAPH | Multi-line text response<br><img src="https://imgur.com/EmsrPKO.jpg" alt="PARAGRAPH Screenshot" height=75%> |
+| DROPDOWN | Similiar to CHECKBOX, but you only need to pick one correct answer for points<br><img src="https://imgur.com/WGvHZAs.jpg" alt="MC Screenshot" height=75%> |
 | HEADER | Extra info that can be included anywhere in the Form<br><img src="https://imgur.com/RmCzgic.jpg" alt="HEADER Screenshot" height=75%> |
 | IMAGE | Image from a URL (needs to have an image extension at the end)<br><img src="https://imgur.com/fpDJ5jB.jpg" alt="IMAGE Screenshot" height=75%> |
 | IMAGE-DRIVE | Image from Google Drive (based on a String of text)<br><img src="https://imgur.com/iX3wxD6.jpg" alt="IMAGE-DRIVE Screenshot" height=75%> |
 | VIDEO | Video from a YouTube URL<br><img src="https://imgur.com/UNzGQ0p.jpg" alt="VIDEO Screenshot" height=75%> |
+
+Authors Note:
+*The row with the "GRID" item will become the rows in the GRID. The row below the "GRID" item will become the columns of the GRID.
 
 ### True/False Fields
 
