@@ -17,18 +17,6 @@ var correctColor = "#29d57b";
 var green = "#29d57b", tan = "#faefcf", blue = "#f0f8ff", black = "#000000";
 
 //arrays
-// const header = [ //cell, name, col (1-indexed), width
-//   ["A", "Question Type",                1, 150], 
-//   ["B", "Question",                     2, 200],
-//   ["C", "Instructions",                 3, 200],
-//   ["D", "Points",                       4],
-//   // options
-//   [char(optionEnd+1), "Required?",      optionEnd+1],
-//   [char(optionEnd+2), "Other?",         optionEnd+2],
-//   [char(optionEnd+3), "Correct Text",   optionEnd+3, 200],
-//   [char(optionEnd+4), "Incorrect Text", optionEnd+4, 200],
-//   [char(optionEnd+5), "URL / ID",       optionEnd+5],
-// ];
 const header = [ //cell, name, col (1-indexed), width
   ["A", "Question Type",                1, 150], 
   ["B", "Question",                     2, 200],
@@ -59,7 +47,8 @@ function onInstall(e) {
   onOpen(e);
 }
 function onOpen(e) {
-  let menu = UI.createMenu("Forms");
+  // let menu = UI.createMenu("Forms"); Used as standalone
+  let menu = SpreadsheetApp.getUi().createAddonMenu(); //used with congunction with google marketplace
   menu.addItem("Initilize Spreadsheet", "createTemplate").addToUi();
   menu.addItem("Create Google Form", "createForm").addToUi();
   menu.addItem("Link to Documentation", "linkDoc").addToUi();
@@ -73,6 +62,8 @@ function onEdit(e) { //alerts user if they checked GRID that row below should be
       +ss.getRange(range).getValue()+" and nothing else. You can turn alerts off by setting the B4 cell to FALSE", UI.ButtonSet.OK);
 }
 function createTemplate() {
+  // let response = UI.alert("Are you sure? (all information will be cleared)", UI.ButtonSet.YES_NO);
+  // if(response===UI.Button.NO) return;
   //setting up spreadsheet dimensions
   let curRow = ss.getMaxRows(), curCol = ss.getMaxColumns();
   if(curRow!==desRow) //Exception: Invalid argument is thrown if you .inserRowsAfter(X, 0)
