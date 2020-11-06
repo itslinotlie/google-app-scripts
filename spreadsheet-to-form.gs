@@ -29,14 +29,15 @@ const header = [ //cell, name, col (1-indexed), width
   [char(optionEnd+6), "Correct Text",   optionEnd+6, 200],
   [char(optionEnd+7), "Incorrect Text", optionEnd+7, 200],
 ];
-const options = ["MC", "CHECKBOX", "MCGRID", "CHECKGRID", "SHORTANSWER", 
-                  "PARAGRAPH", "DROPDOWN", "PAGEBREAK", "HEADER", "IMAGE", "IMAGE-DRIVE", "VIDEO"];
+const options = [
+  "MC", "CHECKBOX", "MCGRID", "CHECKGRID", "SHORTANSWER", 
+  "PARAGRAPH", "DROPDOWN", "PAGEBREAK", "HEADER", "IMAGE", "IMAGE-DRIVE", "VIDEO"
+];
 const basic = ["HCENTER", "VCENTER"];
 const bool = ["TRUE", "FALSE"];
 
 //abbreviations
-let SA = SpreadsheetApp, UI = SA.getUi();
-let IT = FormApp.ItemType;
+let SA = SpreadsheetApp, UI = SA.getUi(), IT = FormApp.ItemType;
 
 //numbers
 let req = find("Required?"), other = find("Other?"), instruc = find("Instructions"),
@@ -59,7 +60,7 @@ function onEdit(e) { //alerts user if they checked GRID that row below should be
   if(col!=="A" || row<=headerSize) return;
   if((ss.getRange(range).getValue()==="MCGRID" || ss.getRange(range).getValue()==="CHECKGRID") && data[3][1]) 
     UI.alert("Friendly Reminder", "Remember that the cell below "+range+" should be the columns for the "
-      +ss.getRange(range).getValue()+" and nothing else. You can turn alerts off by setting the B4 cell to FALSE", UI.ButtonSet.OK);
+    +ss.getRange(range).getValue()+" and nothing else. You can turn alerts off by setting the B4 cell to FALSE", UI.ButtonSet.OK);
 }
 function createTemplate() {
   // let response = UI.alert("Are you sure? (all information will be cleared)", UI.ButtonSet.YES_NO);
@@ -255,8 +256,6 @@ const mix = [IT.CHECKBOX, IT.MULTIPLE_CHOICE,
   IT.PARAGRAPH_TEXT, IT.TEXT, IT.LIST,
 ];
 const twoD = [IT.CHECKBOX_GRID, IT.GRID];
-//Rant: so you can set points for shortanswers, but not the answer key. Okay I can accept that
-//      ,but you cant set points for grid items... at least keep it consistent google...
 function setUpQuestion(i) {
   if(data[i][1]!=='') question.setTitle(data[i][1]);
   if(data[i][instruc-1]!=='') question.setHelpText(data[i][instruc-1]);
