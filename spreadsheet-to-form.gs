@@ -86,6 +86,8 @@ function createTemplate() {
   ss().getRange("A3").setValue("Highlight Color");
   ss().getRange("A4").setValue("Alerts");
   setValidation("B4", bool); ss().getRange("B4").setValue("TRUE");
+  ss().getRange("A5").setValue("Randomize OPTIONS");
+  setValidation("B5", bool); ss().getRange("B5").setValue("FALSE");
   ss().getRange("C1").setValue("Folder ID:");
   // \o> Edit Me <o/
   // ss.getRange("D1").setValue("1D2yMTtKfq9ey5awuTbEiHXViCHDYgejH");
@@ -153,7 +155,7 @@ function createTemplate() {
   //dunno how to categorize these
   setStrategy(headerSize+":"+headerSize, basic);
   setStrategy("D1:D3", ["CLIP"]);
-  setStrategy("B4", basic);
+  setStrategy("B4:B5", basic);
 
   //colors
   ss().getRange("A1:"+charEnd+curRow).setBackground(tan);
@@ -294,6 +296,7 @@ function addOptions(i) {
     else arr.push(question.createChoice(data()[i][j], false));
   }
   if(arr.length===0) return;
+  if(ss().getRange("B5")) shuffle(arr);
   question.setChoices(arr);
 }
 function addGrid(x) {
