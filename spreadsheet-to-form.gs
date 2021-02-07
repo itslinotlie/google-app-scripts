@@ -63,7 +63,8 @@ function onEdit(e) { //alerts user if they checked GRID that row below should be
     +ss().getRange(range).getValue()+" and nothing else. You can turn alerts off by setting the B4 cell to FALSE", UI.ButtonSet.OK);
 }
 function createTemplate() {
-  if((data()[0][1]!=="" || ss().getLastRow()>6) && data()[3][1]) { //have title? have info in the bottom?
+  let x = data().length; //checker to see if data is valid is "out of bounds" for empty spreadsheet, but js is weird and I need use variable rather than data().length
+  if((x!=1) && (data()[0][1]!=="" || ss().getLastRow()>6) && data()[3][1]) { //have title? have info in the bottom?
     let response = UI.alert("Are you sure? (all information will be cleared)", UI.ButtonSet.YES_NO);
     if(response===UI.Button.NO) return;
   }
@@ -115,7 +116,7 @@ function createTemplate() {
 
   //kinda related to ^^^
   let src = UrlFetchApp.fetch("https://imgur.com/QSzRPRL.png").getContent();
-  ss().insertImage(Utilities.newBlob(src, "image/png", "aName"), 4, 4, 28, -2);
+  ss().insertImage(Utilities.newBlob(src, "image/png", "aName"), 4, 4, 70, -2);
   ss().getRange("D4:D5").merge();
   setStrategy("F1:F5", basic); setStrategy("H1:H5", basic);
   
