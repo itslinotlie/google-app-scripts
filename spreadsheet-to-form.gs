@@ -2,10 +2,11 @@
 // \o> Edit Me <o/
 var optionLength = 5;
 // \o> Edit Me <o/
-var desRow = 21, desCol = 9+optionLength; //change if you add more columns
+var desRow = 21, desCol = optionLength+10; //change if you add more columns
 var headerSize = 6; //how many rows before question type starts
 var optionStart = 2, optionEnd = optionStart+optionLength;
 let charOptSrt = char(optionEnd-optionLength+1), charOptEnd = char(optionEnd), charEnd = char(desCol);
+var tagLength = 10, tagSrt = optionEnd+2;
 // \o> Edit Me <o/
 var correctColor = "#29d57b";
 var green = "#29d57b", tan = "#faefcf", blue = "#f0f8ff", black = "#000000";
@@ -16,12 +17,13 @@ const header = [ //cell, name, col (1-indexed), width
   ["B", "Question",                     2, 200],
   // options
   [char(optionEnd+1), "Points",   optionEnd+1],
-  [char(optionEnd+2), "URL / ID", optionEnd+2],
+  [char(optionEnd+8), "URL / ID", optionEnd+8],
   [char(optionEnd+3), "Required?",      optionEnd+3],
   [char(optionEnd+4), "Other?",         optionEnd+4],
   [char(optionEnd+5), "Instructions",   optionEnd+5, 200],
   [char(optionEnd+6), "Correct Text",   optionEnd+6, 200],
   [char(optionEnd+7), "Incorrect Text", optionEnd+7, 200],
+  [char(optionEnd+2), "Tag", optionEnd+2]
 ];
 const options = [
   "MC", "CHECKBOX", "MCGRID", "CHECKGRID", "SHORTANSWER", 
@@ -29,6 +31,7 @@ const options = [
 ];
 const basic = ["HCENTER", "VCENTER"];
 const bool = ["TRUE", "FALSE"];
+const tagArr = [];
 
 //abbreviations
 let SA = SpreadsheetApp, UI = SA.getUi(), IT = FormApp.ItemType;
@@ -61,6 +64,15 @@ function onEdit(e) { //alerts user if they checked GRID that row below should be
   if((ss().getRange(range).getValue()==="MCGRID" || ss().getRange(range).getValue()==="CHECKGRID") && data()[3][1]) 
     UI.alert("Friendly Reminder", "Remember that the cell below "+range+" should be the columns for the "
     +ss().getRange(range).getValue()+" and nothing else. You can turn alerts off by setting the B4 cell to FALSE", UI.ButtonSet.OK);
+}
+function setupTag() {
+  for(let i=0;i<tagLength;i++) { //adds the tags in the array
+    tagArr.push(i+1);
+  }
+  for(let i=0;i<tagLength;i++) {
+    var cl = char(tagSrt+(~~(i/5)*2)); //some magical integer division from js
+    ss().getRange(cl+(i%5+1)).setValue("# of tag "+(i+1));
+  }
 }
 function createTemplate() {
   let x = data().length; //checker to see if data is valid is "out of bounds" for empty spreadsheet, but js is weird and I need use variable rather than data().length
@@ -97,6 +109,7 @@ function createTemplate() {
   ss().getRange("C4").setValue("Random subset of questions based on category");
   ss().getRange("C4:C5").merge();
   setStrategy("C4", ["WRAP"]);
+  setupTag();
 
   //various boolean fields
   ss().getRange("E1").setValue("One Response per User?");
@@ -115,9 +128,9 @@ function createTemplate() {
   ss().getRange("G5").setValue("# of PARAGRAPH:");
 
   //kinda related to ^^^
-  let src = UrlFetchApp.fetch("https://imgur.com/QSzRPRL.png").getContent();
-  ss().insertImage(Utilities.newBlob(src, "image/png", "aName"), 4, 4, 70, -2);
-  ss().getRange("D4:D5").merge();
+  // let src = UrlFetchApp.fetch("https://imgur.com/QSzRPRL.png").getContent();
+  // ss().insertImage(Utilities.newBlob(src, "image/png", "aName"), 4, 4, 70, -2);
+  // ss().getRange("D4:D5").merge();
   setStrategy("F1:F5", basic); setStrategy("H1:H5", basic);
   
   //header info
@@ -131,6 +144,7 @@ function createTemplate() {
     if(header[i][1]==="Question Type") setValidation(header[i][0]+(headerSize+1)+":"+header[i][0]+curRow, options);
     if(header[i][1]==="Required?") setValidation(header[i][0]+(headerSize+1)+":"+header[i][0]+curRow, bool);
     if(header[i][1]==="Other?") setValidation(header[i][0]+(headerSize+1)+":"+header[i][0]+curRow, bool);
+    if(header[i][1]==="Tag") setValidation(header[i][0]+(headerSize+1)+":"+header[i][0]+curRow, tagArr);
   }
 
   //cell width formatting
