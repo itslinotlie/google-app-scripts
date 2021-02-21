@@ -39,7 +39,7 @@ let SA = SpreadsheetApp, UI = SA.getUi(), IT = FormApp.ItemType;
 //numbers
 let req = find("Required?"), other = find("Other?"), instruc = find("Instructions"),
   inc = find("Incorrect Text"), cor = find("Correct Text"), url = find("URL / ID"),
-  pnt = find("Points");
+  pnt = find("Points"), taggy = find("Tag");
 
 //workaround to Authmode.NONE
 var ss = function() {return SpreadsheetApp.getActiveSpreadsheet().getActiveSheet()}
@@ -222,16 +222,37 @@ function createForm() {
   if(data()[1][7]!=='') form.setShowLinkToRespondAgain(data()[1][7]);
   if(data()[2][7]!=='') form.setPublishingSummary(data()[2][7]); //reveals question distribution, but no answers
 
+  //tag questions
+  let cntTag = [], tagRnd, tagArr = [];
+  for(let i=0;i<tagLength;i++) {
+    cntTag.push(data()[i%5][tagSrt+(~~(i/5)*2)]);
+    tagRnd = tagRnd || data()[i%5][tagSrt+(~~(i/5)*2)]>0;
+  }
+
+  //random category of questions
   let rnd, arrRnd = [], cntRnd = [0, 0, 0, 0]; //MC, CB, SA, PG respectively
   if(data()[3][5]!=='') cntRnd[0] = data()[3][5];
   if(data()[3][7]!=='') cntRnd[1] = data()[3][7];
   if(data()[4][5]!=='') cntRnd[2] = data()[4][5];
   if(data()[4][7]!=='') cntRnd[3] = data()[4][7];
   for (let i=0;i<4;i++) rnd = rnd || cntRnd[i]>0;
+
+  //adding questions to form
   for (let i=headerSize;i<row;i++) {
     let x = data()[i][0]; 
     if(x==='') continue;
-    if(rnd) {
+    if(tagRnd) {
+      let flag = false;
+      for(let j=0;j<tagLength;j++) {
+        if(cntTag[data()[i][taggy-1]-1]>0) {
+          flag = true;
+          break;
+        }
+      }
+      if(flag) tagArr.push(i);
+      continue;
+    }
+    else if(rnd) {
       if(x==="MC" && cntRnd[0]>0
         || x==="CHECKBOX" && cntRnd[1]>0
         || x==="SHORTANSWER" && cntRnd[2]>0
@@ -253,8 +274,24 @@ function createForm() {
     else if(x==="VIDEO") question = form.addVideoItem().setVideoUrl(data()[i][url-1]);
     setUpQuestion(i);
   }
-  shuffle(arrRnd);
-  if(rnd) {
+  shuffle(arrRnd); shuffle(tagArr);
+  if(tagRnd) {
+    for(let i=0;i<tagArr.length;i++) {
+      let x = data()[tagArr[i]][taggy-1], flag = true;
+      if(x==='') continue;
+      for (let j=0;j<cntTag.length;j++) {
+        if(cntTag[j]>0) flag = false;
+      } if(flag) break;
+      if(cntTag[x-1]>0) {
+        if(data()[tagArr[i]][0]==="MC") question = form.addMultipleChoiceItem();
+        if(data()[tagArr[i]][0]==="CHECKBOX") question = form.addCheckboxItem();
+        if(data()[tagArr[i]][0]==="SHORTANSWER") question = form.addTextItem();
+        if(data()[tagArr[i]][0]==="PARAGRAPH") question = form.addParagraphTextItem();
+        cntTag[x-1]--;
+        setUpQuestion(tagArr[i]);
+      }
+    }
+  } else if(rnd) {
     for (let i=0;i<arrRnd.length;i++) {
       let x = data()[arrRnd[i]][0], flag = true;
       if(x==='') continue;
