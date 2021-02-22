@@ -3,6 +3,7 @@ var optionLength = 5;
 var desRow = 21, desCol = optionLength+10;
 var headerSize = 6;
 var tagLength = 10;
+var folderID = "";
 var correctColor = "#29d57b";
 var highlight = "#29d57b", topBackground = "#faefcf", bottomBackground = "#f0f8ff", outline = "#000000"; //default is: green, tan, blue, black respectively
 
@@ -37,13 +38,16 @@ const tagNameArr = []; //tag names, default is Tag <Number>
 //abbreviations, I don't even know how this is legal, but it works
 let SA = SpreadsheetApp, UI = SA.getUi(), IT = FormApp.ItemType;
 
-//column numbers based on header array. If header[x][1] values are changed, these need to be changed too
+//column numbers based on header array. If header[x][1] values are changed, these need to be changed too (1-indexed)
 let requiredNumber = find("Required?"), otherNumber = find("Other?"), instructionsNumber = find("Instructions"),
   incorrectTextNumber = find("Incorrect Text"), correctTextNumber = find("Correct Text"),
   url = find("URL / ID"), pointsNumber = find("Points"), tagNumber = find("Tag");
 
+//other column numbers (1-indexed)
+let titleNumber = 1, descriptionNumber = 1;
+
 //letter number combo
-let alertLN = "A4", alertLNValue = "B4";
+let alertCell = "A4", alertCellValue = "B4", randomOptionCell = "A5", randomOptionCellValue = "B5";
 
 //workaround to Authmode.NONE because publication requirements
 var ss = function() {return SpreadsheetApp.getActiveSpreadsheet().getActiveSheet()}
@@ -61,14 +65,14 @@ function onOpen(e) {
   menu.addItem("Create Google Form", "createForm").addToUi();
   menu.addItem("Link to Documentation", "linkDoc").addToUi();
   menu.addItem("Update Settings", "update").addToUi();
-  if(ss.getRange(alertLNValue).getValue()===true) //sometimes this gives errors (but code still runs), sometimes it doesn't /shrug
+  if(ss().getRange(alertCellValue).getValue()===true) //sometimes this gives errors (but code still runs), sometimes it doesn't /shrug
     SA.getActiveSpreadsheet().toast("Remember to check the GitHub documentation or YouTube video for any help/clarifications. Have a good day :)", "Hello fellow human being");
   // keeping vvv iin case I do need the e.authMode and I forget that its a thing and end up on stackoverflow for hours
-  // if(e.authMode !== ScriptApp.AuthMode.NONE && ss.getRange(alertLNValue).getValue()===true) //sometimes this gives errors (but code still runs), sometimes it doesn't /shrug
+  // if(e.authMode !== ScriptApp.AuthMode.NONE && ss().getRange(alertCellValue).getValue()===true) //sometimes this gives errors (but code still runs), sometimes it doesn't /shrug
 }
 function onEdit(e) { //alerts user if they checked GRID question type, the row below should be void
   let row = e.range.getRow(), col = char(e.range.getColumn()), range = col+row;
-  if(col!=="A" || row<=headerSize || ss().getRange(alertLNValue).getValue()===false) return;
+  if(col!=="A" || row<=headerSize || ss().getRange(alertCellValue).getValue()===false) return;
   if(ss().getRange(range).getValue()==="MCGRID" || ss().getRange(range).getValue()==="CHECKGRID") 
     UI.alert("Friendly Reminder", "Remember that the cell below "+range+" should be the columns for the "
     +ss().getRange(range).getValue()+" and nothing else. You can turn alerts off by setting the B4 cell to FALSE", UI.ButtonSet.OK);
@@ -122,18 +126,16 @@ function createTemplate() {
   ss().getRange("A1").setValue("Form Title:");
   ss().getRange("A2").setValue("Form Desciption:");
   ss().getRange("A3").setValue("Highlight Color");
-  ss().getRange(alertLN).setValue("I Want Alerts");
-  setValidation("B4", bool); ss().getRange("B4").setValue("TRUE");
-  ss().getRange("A5").setValue("Randomize OPTIONS");
-  setValidation("B5", bool); ss().getRange("B5").setValue("FALSE");
+  ss().getRange(alertCell).setValue("I Want Alerts");
+  setValidation(alertCellValue, bool); ss().getRange(alertCellValue).setValue("TRUE");
+  ss().getRange(randomOptionCell).setValue("Randomize OPTIONS");
+  setValidation(randomOptionCellValue, bool); ss().getRange(randomOptionCellValue).setValue("FALSE");
   ss().getRange("C1").setValue("Folder ID:");
-  // \o> Edit Me <o/
-  // ss.getRange("D1").setValue("1D2yMTtKfq9ey5awuTbEiHXViCHDYgejH");
+  ss().getRange("D1").setValue(folderID);
   ss().getRange("C2").setValue("Public URL:");
   ss().getRange("C3").setValue("Private URL:");
   ss().getRange("C4").setValue("Random subset of questions based on category");
-  ss().getRange("C4:C5").merge();
-  setStrategy("C4", ["WRAP"]);
+  ss().getRange("C4:C5").merge(); setStrategy("C4", ["WRAP"]);
   setupTag();
 
   //various boolean fields
@@ -153,9 +155,9 @@ function createTemplate() {
   ss().getRange("G5").setValue("# of PARAGRAPH:");
 
   //kinda related to ^^^
-  // let src = UrlFetchApp.fetch("https://imgur.com/QSzRPRL.png").getContent();
-  // ss().insertImage(Utilities.newBlob(src, "image/png", "aName"), 4, 4, 70, -2);
-  // ss().getRange("D4:D5").merge();
+  let src = UrlFetchApp.fetch("https://imgur.com/QSzRPRL.png").getContent();
+  ss().insertImage(Utilities.newBlob(src, "image/png", "aName"), 4, 4, 70, -2);
+  ss().getRange("D4:D5").merge();
   setStrategy("F1:F5", basicStyling); setStrategy("H1:H5", basicStyling);
   
   //header info
@@ -212,13 +214,14 @@ function createTemplate() {
   ss().getRange(headerSize+":"+headerSize).setBorder(true, false, true, false, false, false, outline, SA.BorderStyle.SOLID_MEDIUM);
 
   // happy message :)
-  SA.getActiveSpreadsheet().toast("Remember to check the GitHub documentation or YouTube video for any help/clarifications. Have a good day :)", "Hello fellow human being");
+  if(ss().getRange(alertCellValue).getValue()===true)
+    SA.getActiveSpreadsheet().toast("Remember to check the GitHub documentation or YouTube video for any help/clarifications. Have a good day :)", "Hello fellow human being");
 }
 
 //second menu item, creates the form
 function createForm() {
   //subtle plug (:
-  if(ss.getRange(alertLNValue).getValue()===true) //sometimes this gives errors (but code still runs), sometimes it doesn't /shrug
+  if(ss().getRange(alertCellValue).getValue()===true) //sometimes this gives errors (but code still runs), sometimes it doesn't /shrug
     SA.getActiveSpreadsheet().toast("Remember to check the GitHub documentation or YouTube video for any help/clarifications. Have a good day :)", "Hello fellow human being");
   
   let row = ss().getDataRange().getNumRows();
@@ -233,15 +236,12 @@ function createForm() {
   ss().getRange("D3").setValue(privateUrl);
 
   //moving form to the folder (if possible)
-  if(data()[0][3]!=='') {
-    let folder = DriveApp.getFolderById(data()[0][3]);
-    file.moveTo(folder);
-  }
+  if(folderID!=='') file.moveTo(DriveApp.getFolderById(folderID));
 
   //filling in form info
-  file.setName(data()[0][1]);
-  form.setTitle(data()[0][1]);
-  form.setDescription(data()[1][1]);
+  file.setName(data()[0][titleNumber]);
+  form.setTitle(data()[0][titleNumber]);
+  form.setDescription(data()[1][descriptionNumber]);
   form.setIsQuiz(true); //https://developers.google.com/apps-script/reference/forms/form#setisquizenabled
 
   // boolean info
@@ -330,10 +330,10 @@ function createForm() {
       for (let j=0;j<cntRnd.length;j++) {
         if(cntRnd[j]>0) flag = false;
       } if(flag) break;
-      if(x==="MC" && cntRnd[0]>0) {question = form.addMultipleChoiceItem(); cntRnd[0]--;}
-      else if(x==='CHECKBOX' && cntRnd[1]>0) {question = form.addCheckboxItem(); cntRnd[1]--;}
-      else if(x==='SHORTANSWER' && cntRnd[2]>0) {question = form.addTextItem(); cntRnd[2]--;}
-      else if(x==='PARAGRAPH' && cntRnd[3]>0) {question = form.addParagraphTextItem(); cntRnd[3]--;}
+      if(x==="MC"               && cntRnd[0]-->0) question = form.addMultipleChoiceItem();
+      else if(x==='CHECKBOX'    && cntRnd[1]-->0) question = form.addCheckboxItem();
+      else if(x==='SHORTANSWER' && cntRnd[2]-->0) question = form.addTextItem();
+      else if(x==='PARAGRAPH'   && cntRnd[3]-->0) question = form.addParagraphTextItem();
       setUpQuestion(arrRnd[i]);
     }
   }
@@ -345,7 +345,7 @@ const mix = [IT.CHECKBOX, IT.MULTIPLE_CHOICE,
 ];
 const twoD = [IT.CHECKBOX_GRID, IT.GRID];
 function setUpQuestion(i) {
-  if(data()[i][1]!=='') question.setTitle(data()[i][1]);
+  if(data()[i][titleNumber-1]       !=='') question.setTitle(data()[i][titleNumber-1]);
   if(data()[i][instructionsNumber-1]!=='') question.setHelpText(data()[i][instructionsNumber-1]);
   let type = question.getType();
   for (let j=0;j<visual.length;j++) { //Visuals (Image + Video)
@@ -361,7 +361,7 @@ function setUpQuestion(i) {
   }
   for (let j=0;j<mix.length;j++) { //Adding points + setting required
     if(type===mix[j]) {
-      if(data()[i][pointsNumber-1]!=='') question.setPoints(data()[i][pointsNumber-1]);
+      if(data()[i][pointsNumber-1]  !=='') question.setPoints(data()[i][pointsNumber-1]);
       if(data()[i][requiredNumber-1]!=='') question.setRequired(data()[i][requiredNumber-1]);
     }
   }
@@ -380,7 +380,7 @@ function addOptions(i) {
     else arr.push(question.createChoice(data()[i][j], false));
   }
   if(arr.length===0) return;
-  if(ss().getRange("B5")) shuffle(arr);
+  if(ss().getRange(randomOptionCellValue)===true) shuffle(arr);
   question.setChoices(arr);
 }
 function addGrid(x) {
