@@ -55,6 +55,7 @@ function onOpen(e) {
   menu.addItem("Initilize Spreadsheet", "createTemplate").addToUi();
   menu.addItem("Create Google Form", "createForm").addToUi();
   menu.addItem("Link to Documentation", "linkDoc").addToUi();
+  menu.addItem("Update Settings", "update").addToUi();
   if(e.authMode !== ScriptApp.AuthMode.NONE)
    SA.getActiveSpreadsheet().toast("Remember to check the GitHub documentation or YouTube video for any help/clarifications. Have a good day :)", "Hello fellow human being");
 }
@@ -70,8 +71,20 @@ function setupTag() {
     tagArr.push(i+1);
   }
   for(let i=0;i<tagLength;i++) {
-    var cl = char(tagSrt+(~~(i/5)*2)); //some magical integer division from js
-    ss().getRange(cl+(i%5+1)).setValue("# of tag "+(i+1));
+    var cl = char(tagSrt+(~~(i/5)*2)), cr = char(tagSrt+(~~(i/5)*2)+1); //some magical integer division from js
+    ss().getRange(cl+(i%5+1)).setValue("Tag "+(i+1));
+    // ss().getRange(cr+(i%5+1)).setValue(0);
+  }
+}
+function update() {
+  tagArr.length = 0;
+  for(let i=0;i<tagLength;i++) {
+    var cl = char(tagSrt+(~~(i/5)*2)); //magical integer division from js orz
+    tagArr.push(ss().getRange(cl+(i%5+1)).getValue());
+  }
+  //validations
+  for (let i=0;i<header.length;i++) {
+    if(header[i][1]==="Tag") setValidation(header[i][0]+(headerSize+1)+":"+header[i][0]+ss().getMaxRows(), tagArr);
   }
 }
 function createTemplate() {
@@ -223,7 +236,7 @@ function createForm() {
   if(data()[2][7]!=='') form.setPublishingSummary(data()[2][7]); //reveals question distribution, but no answers
 
   //tag questions
-  let cntTag = [], tagRnd, tagArr = [];
+  let cntTag = [], tagRnd, tagArray = [];
   for(let i=0;i<tagLength;i++) {
     cntTag.push(data()[i%5][tagSrt+(~~(i/5)*2)]);
     tagRnd = tagRnd || data()[i%5][tagSrt+(~~(i/5)*2)]>0;
@@ -244,12 +257,13 @@ function createForm() {
     if(tagRnd) {
       let flag = false;
       for(let j=0;j<tagLength;j++) {
-        if(cntTag[data()[i][taggy-1]-1]>0) {
+        let idx = findTagFromWord(data()[i][taggy-1]);
+        if(cntTag[idx]>0) {
           flag = true;
           break;
         }
       }
-      if(flag) tagArr.push(i);
+      if(flag) tagArray.push(i);
       continue;
     }
     else if(rnd) {
@@ -274,21 +288,21 @@ function createForm() {
     else if(x==="VIDEO") question = form.addVideoItem().setVideoUrl(data()[i][url-1]);
     setUpQuestion(i);
   }
-  shuffle(arrRnd); shuffle(tagArr);
+  shuffle(arrRnd); shuffle(tagArray);
   if(tagRnd) {
-    for(let i=0;i<tagArr.length;i++) {
-      let x = data()[tagArr[i]][taggy-1], flag = true;
+    for(let i=0;i<tagArray.length;i++) {
+      let x = data()[tagArray[i]][taggy-1], idx = findTagFromWord(x), flag = true;
       if(x==='') continue;
       for (let j=0;j<cntTag.length;j++) {
         if(cntTag[j]>0) flag = false;
       } if(flag) break;
-      if(cntTag[x-1]>0) {
-        if(data()[tagArr[i]][0]==="MC") question = form.addMultipleChoiceItem();
-        if(data()[tagArr[i]][0]==="CHECKBOX") question = form.addCheckboxItem();
-        if(data()[tagArr[i]][0]==="SHORTANSWER") question = form.addTextItem();
-        if(data()[tagArr[i]][0]==="PARAGRAPH") question = form.addParagraphTextItem();
-        cntTag[x-1]--;
-        setUpQuestion(tagArr[i]);
+      if(cntTag[idx]>0) {
+        if(data()[tagArray[i]][0]==="MC") question = form.addMultipleChoiceItem();
+        if(data()[tagArray[i]][0]==="CHECKBOX") question = form.addCheckboxItem();
+        if(data()[tagArray[i]][0]==="SHORTANSWER") question = form.addTextItem();
+        if(data()[tagArray[i]][0]==="PARAGRAPH") question = form.addParagraphTextItem();
+        cntTag[idx]--;
+        setUpQuestion(tagArray[i]);
       }
     }
   } else if(rnd) {
@@ -368,6 +382,12 @@ function formatVisual() {
 //helper functions
 function char(x) {
   return String.fromCharCode(64+x);
+}
+function findTagFromWord(x) {
+  update();
+  for(let i=0;i<tagArr.length;i++) {
+    if(tagArr[i]===x) return i;
+  } return 314;
 }
 function setSize(range, size, letter) {
   for (let i=0;i<range.length;i++) {
