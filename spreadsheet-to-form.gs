@@ -2,7 +2,7 @@
 var optionLength = 5;
 var desRow = 21, desCol = optionLength+10;
 var headerSize = 6;
-var tagLength = 15;
+var tagLength = 10;
 var correctColor = "#29d57b";
 var highlight = "#29d57b", topBackground = "#faefcf", bottomBackground = "#f0f8ff", outline = "#000000"; //default is: green, tan, blue, black respectively
 
@@ -17,14 +17,14 @@ const header = [ //cell-letter, header-name, col (1-indexed), width respectively
   ["A", "Question Type",                1, 150], 
   ["B", "Question",                     2, 200],
   // <option(s)> in between ^^ and vv
-  [char(optionEnd+1), "Points",   optionEnd+1],
-  [char(optionEnd+2), "Tag", optionEnd+2],
+  [char(optionEnd+1), "Points",         optionEnd+1],
+  [char(optionEnd+2), "Tag",            optionEnd+2],
   [char(optionEnd+3), "Required?",      optionEnd+3],
   [char(optionEnd+4), "Other?",         optionEnd+4],
   [char(optionEnd+5), "Instructions",   optionEnd+5, 200],
   [char(optionEnd+6), "Correct Text",   optionEnd+6, 200],
   [char(optionEnd+7), "Incorrect Text", optionEnd+7, 200],
-  [char(optionEnd+8), "URL / ID", optionEnd+8]
+  [char(optionEnd+8), "URL / ID",       optionEnd+8]
 ];
 const options = [ //supported Form question types (not the actual naming GAS uses, but my simplification of them)
   "MC", "CHECKBOX", "MCGRID", "CHECKGRID", "SHORTANSWER", 
@@ -32,21 +32,25 @@ const options = [ //supported Form question types (not the actual naming GAS use
 ];
 const basicStyling = ["HCENTER", "VCENTER"]; //styling used for majority of the spreadsheet
 const bool = ["TRUE", "FALSE"];
-const tagNameArr = []; //names of the tags
+const tagNameArr = []; //tag names, default is Tag <Number>
 
-//abbreviations
+//abbreviations, I don't even know how this is legal, but it works
 let SA = SpreadsheetApp, UI = SA.getUi(), IT = FormApp.ItemType;
 
-//numbers based on header info
-let req = find("Required?"), other = find("Other?"), instruc = find("Instructions"),
-  inc = find("Incorrect Text"), cor = find("Correct Text"), url = find("URL / ID"),
-  pnt = find("Points"), taggy = find("Tag");
+//column numbers based on header array. If header[x][1] values are changed, these need to be changed too
+let requiredNumber = find("Required?"), otherNumber = find("Other?"), instructionsNumber = find("Instructions"),
+  incorrectTextNumber = find("Incorrect Text"), correctTextNumber = find("Correct Text"),
+  url = find("URL / ID"), pointsNumber = find("Points"), tagNumber = find("Tag");
 
-//workaround to Authmode.NONE
+//letter number combo
+let alertLN = "A4", alertLNValue = "B4";
+
+//workaround to Authmode.NONE because publication requirements
 var ss = function() {return SpreadsheetApp.getActiveSpreadsheet().getActiveSheet()}
 var data = function() {return SpreadsheetApp.getActiveSpreadsheet().getActiveSheet().getDataRange().getValues()}
 var question;
 
+//google script triggers for when certain events happen
 function onInstall(e) {
   onOpen(e);
 }
@@ -57,16 +61,20 @@ function onOpen(e) {
   menu.addItem("Create Google Form", "createForm").addToUi();
   menu.addItem("Link to Documentation", "linkDoc").addToUi();
   menu.addItem("Update Settings", "update").addToUi();
-  if(e.authMode !== ScriptApp.AuthMode.NONE)
-   SA.getActiveSpreadsheet().toast("Remember to check the GitHub documentation or YouTube video for any help/clarifications. Have a good day :)", "Hello fellow human being");
+  if(ss.getRange(alertLNValue).getValue()===true) //sometimes this gives errors (but code still runs), sometimes it doesn't /shrug
+    SA.getActiveSpreadsheet().toast("Remember to check the GitHub documentation or YouTube video for any help/clarifications. Have a good day :)", "Hello fellow human being");
+  // keeping vvv iin case I do need the e.authMode and I forget that its a thing and end up on stackoverflow for hours
+  // if(e.authMode !== ScriptApp.AuthMode.NONE && ss.getRange(alertLNValue).getValue()===true) //sometimes this gives errors (but code still runs), sometimes it doesn't /shrug
 }
 function onEdit(e) { //alerts user if they checked GRID question type, the row below should be void
   let row = e.range.getRow(), col = char(e.range.getColumn()), range = col+row;
-  if(col!=="A" || row<=headerSize) return;
-  if((ss().getRange(range).getValue()==="MCGRID" || ss().getRange(range).getValue()==="CHECKGRID") && data()[3][1]) 
+  if(col!=="A" || row<=headerSize || ss().getRange(alertLNValue).getValue()===false) return;
+  if(ss().getRange(range).getValue()==="MCGRID" || ss().getRange(range).getValue()==="CHECKGRID") 
     UI.alert("Friendly Reminder", "Remember that the cell below "+range+" should be the columns for the "
     +ss().getRange(range).getValue()+" and nothing else. You can turn alerts off by setting the B4 cell to FALSE", UI.ButtonSet.OK);
 }
+
+//sets up the default tag names and updates tag column validations
 function setupTag() {
   for(let i=0;i<tagLength;i++) {
     var cl = char(tagStart+(~~(i/5)*2)); //some magical integer division from js
@@ -76,6 +84,8 @@ function setupTag() {
   }
   update();
 }
+
+//updates tagNames, updates Tag column validations
 function update() {
   tagNameArr.length = 0; //dont know how to reset a js array, but heard this works
   for(let i=0;i<tagLength;i++) {
@@ -87,6 +97,8 @@ function update() {
     if(header[i][1]==="Tag") setValidation(header[i][0]+(headerSize+1)+":"+header[i][0]+ss().getMaxRows(), tagNameArr);
   }
 }
+
+//first menu item, creates template
 function createTemplate() {
   let x = data().length; //checker to see if data is valid is "out of bounds" for empty spreadsheet, but js is weird and I need use variable rather than data().length
   if((x!=1) && (data()[0][1]!=="" || ss().getLastRow()>6) && data()[3][1]) { //have title? have info in the bottom?
@@ -110,7 +122,7 @@ function createTemplate() {
   ss().getRange("A1").setValue("Form Title:");
   ss().getRange("A2").setValue("Form Desciption:");
   ss().getRange("A3").setValue("Highlight Color");
-  ss().getRange("A4").setValue("Alerts");
+  ss().getRange(alertLN).setValue("I Want Alerts");
   setValidation("B4", bool); ss().getRange("B4").setValue("TRUE");
   ss().getRange("A5").setValue("Randomize OPTIONS");
   setValidation("B5", bool); ss().getRange("B5").setValue("FALSE");
@@ -202,7 +214,13 @@ function createTemplate() {
   // happy message :)
   SA.getActiveSpreadsheet().toast("Remember to check the GitHub documentation or YouTube video for any help/clarifications. Have a good day :)", "Hello fellow human being");
 }
+
+//second menu item, creates the form
 function createForm() {
+  //subtle plug (:
+  if(ss.getRange(alertLNValue).getValue()===true) //sometimes this gives errors (but code still runs), sometimes it doesn't /shrug
+    SA.getActiveSpreadsheet().toast("Remember to check the GitHub documentation or YouTube video for any help/clarifications. Have a good day :)", "Hello fellow human being");
+  
   let row = ss().getDataRange().getNumRows();
   var form = FormApp.create("Untitled form"); //has to be initialized
   let formID = form.getId();
@@ -257,7 +275,7 @@ function createForm() {
     if(tagRnd) {
       let flag = false;
       for(let j=0;j<tagLength;j++) {
-        let idx = findTagFromWord(data()[i][taggy-1]);
+        let idx = findTagFromWord(data()[i][tagNumber-1]);
         if(cntTag[idx]>0) {
           flag = true;
           break;
@@ -291,7 +309,7 @@ function createForm() {
   shuffle(arrRnd); shuffle(tagArray);
   if(tagRnd) {
     for(let i=0;i<tagArray.length;i++) {
-      let x = data()[tagArray[i]][taggy-1], idx = findTagFromWord(x), flag = true;
+      let x = data()[tagArray[i]][tagNumber-1], idx = findTagFromWord(x), flag = true;
       if(x==='') continue;
       for (let j=0;j<cntTag.length;j++) {
         if(cntTag[j]>0) flag = false;
@@ -328,7 +346,7 @@ const mix = [IT.CHECKBOX, IT.MULTIPLE_CHOICE,
 const twoD = [IT.CHECKBOX_GRID, IT.GRID];
 function setUpQuestion(i) {
   if(data()[i][1]!=='') question.setTitle(data()[i][1]);
-  if(data()[i][instruc-1]!=='') question.setHelpText(data()[i][instruc-1]);
+  if(data()[i][instructionsNumber-1]!=='') question.setHelpText(data()[i][instructionsNumber-1]);
   let type = question.getType();
   for (let j=0;j<visual.length;j++) { //Visuals (Image + Video)
     if(type===visual[j]) formatVisual();
@@ -336,21 +354,21 @@ function setUpQuestion(i) {
   for (let j=0;j<choices.length;j++) { //Adding options + feedback
     if(type===choices[j]) {
       addOptions(i);
-      if(data()[i][other-1]!=='' && type!==IT.LIST) question.showOtherOption(data()[i][other-1]);
-      if(data()[i][cor-1]!=='') question.setFeedbackForCorrect(FormApp.createFeedback().setText(data()[i][cor-1]).build());
-      if(data()[i][inc-1]!=='') question.setFeedbackForIncorrect(FormApp.createFeedback().setText(data()[i][inc-1]).build());
+      if(data()[i][otherNumber-1]!=='' && type!==IT.LIST) question.showOtherOption(data()[i][otherNumber-1]);
+      if(data()[i][correctTextNumber-1]!=='') question.setFeedbackForCorrect(FormApp.createFeedback().setText(data()[i][correctTextNumber-1]).build());
+      if(data()[i][incorrectTextNumber-1]!=='') question.setFeedbackForIncorrect(FormApp.createFeedback().setText(data()[i][incorrectTextNumber-1]).build());
     }
   }
   for (let j=0;j<mix.length;j++) { //Adding points + setting required
     if(type===mix[j]) {
-      if(data()[i][pnt-1]!=='') question.setPoints(data()[i][pnt-1]);
-      if(data()[i][req-1]!=='') question.setRequired(data()[i][req-1]);
+      if(data()[i][pointsNumber-1]!=='') question.setPoints(data()[i][pointsNumber-1]);
+      if(data()[i][requiredNumber-1]!=='') question.setRequired(data()[i][requiredNumber-1]);
     }
   }
   for (let j=0;j<twoD.length;j++) {
     if(type===twoD[j]) {
       addGrid(i);
-      if(data()[i][req-1]!=='') question.setRequired(data()[i][req-1]);
+      if(data()[i][requiredNumber-1]!=='') question.setRequired(data()[i][requiredNumber-1]);
     }
   }
 }
