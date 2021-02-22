@@ -1,42 +1,43 @@
-//global variables
-// \o> Edit Me <o/
+//customizable variables (for when I create a global settings page)
 var optionLength = 5;
-// \o> Edit Me <o/
-var desRow = 21, desCol = optionLength+10; //change if you add more columns
-var headerSize = 6; //how many rows before question type starts
-var optionStart = 2, optionEnd = optionStart+optionLength;
-let charOptSrt = char(optionEnd-optionLength+1), charOptEnd = char(optionEnd), charEnd = char(desCol);
-var tagLength = 10, tagSrt = optionEnd+2;
-// \o> Edit Me <o/
+var desRow = 21, desCol = optionLength+10;
+var headerSize = 6;
+var tagLength = 15;
 var correctColor = "#29d57b";
-var green = "#29d57b", tan = "#faefcf", blue = "#f0f8ff", black = "#000000";
+var highlight = "#29d57b", topBackground = "#faefcf", bottomBackground = "#f0f8ff", outline = "#000000"; //default is: green, tan, blue, black respectively
 
-//arrays
-const header = [ //cell, name, col (1-indexed), width
+//variables that could change, but would be a pain to do so
+var charEnd = char(desCol);
+var optionStart = 2, optionEnd = optionStart+optionLength; //0-indexed
+var charOptionStart = char(optionEnd-optionLength+1), charOptionEnd = char(optionEnd);
+var tagStart = optionStart+7;
+
+//the array of header positioning (rows are flexible to be changed)
+const header = [ //cell-letter, header-name, col (1-indexed), width respectively
   ["A", "Question Type",                1, 150], 
   ["B", "Question",                     2, 200],
-  // options
+  // <option(s)> in between ^^ and vv
   [char(optionEnd+1), "Points",   optionEnd+1],
-  [char(optionEnd+8), "URL / ID", optionEnd+8],
+  [char(optionEnd+2), "Tag", optionEnd+2],
   [char(optionEnd+3), "Required?",      optionEnd+3],
   [char(optionEnd+4), "Other?",         optionEnd+4],
   [char(optionEnd+5), "Instructions",   optionEnd+5, 200],
   [char(optionEnd+6), "Correct Text",   optionEnd+6, 200],
   [char(optionEnd+7), "Incorrect Text", optionEnd+7, 200],
-  [char(optionEnd+2), "Tag", optionEnd+2]
+  [char(optionEnd+8), "URL / ID", optionEnd+8]
 ];
-const options = [
+const options = [ //supported Form question types (not the actual naming GAS uses, but my simplification of them)
   "MC", "CHECKBOX", "MCGRID", "CHECKGRID", "SHORTANSWER", 
   "PARAGRAPH", "DROPDOWN", "PAGEBREAK", "HEADER", "IMAGE", "IMAGE-DRIVE", "VIDEO"
 ];
-const basic = ["HCENTER", "VCENTER"];
+const basicStyling = ["HCENTER", "VCENTER"]; //styling used for majority of the spreadsheet
 const bool = ["TRUE", "FALSE"];
-const tagArr = [];
+const tagNameArr = []; //names of the tags
 
 //abbreviations
 let SA = SpreadsheetApp, UI = SA.getUi(), IT = FormApp.ItemType;
 
-//numbers
+//numbers based on header info
 let req = find("Required?"), other = find("Other?"), instruc = find("Instructions"),
   inc = find("Incorrect Text"), cor = find("Correct Text"), url = find("URL / ID"),
   pnt = find("Points"), taggy = find("Tag");
@@ -59,7 +60,7 @@ function onOpen(e) {
   if(e.authMode !== ScriptApp.AuthMode.NONE)
    SA.getActiveSpreadsheet().toast("Remember to check the GitHub documentation or YouTube video for any help/clarifications. Have a good day :)", "Hello fellow human being");
 }
-function onEdit(e) { //alerts user if they checked GRID that row below should be void
+function onEdit(e) { //alerts user if they checked GRID question type, the row below should be void
   let row = e.range.getRow(), col = char(e.range.getColumn()), range = col+row;
   if(col!=="A" || row<=headerSize) return;
   if((ss().getRange(range).getValue()==="MCGRID" || ss().getRange(range).getValue()==="CHECKGRID") && data()[3][1]) 
@@ -67,24 +68,23 @@ function onEdit(e) { //alerts user if they checked GRID that row below should be
     +ss().getRange(range).getValue()+" and nothing else. You can turn alerts off by setting the B4 cell to FALSE", UI.ButtonSet.OK);
 }
 function setupTag() {
-  for(let i=0;i<tagLength;i++) { //adds the tags in the array
-    tagArr.push(i+1);
-  }
   for(let i=0;i<tagLength;i++) {
-    var cl = char(tagSrt+(~~(i/5)*2)), cr = char(tagSrt+(~~(i/5)*2)+1); //some magical integer division from js
-    ss().getRange(cl+(i%5+1)).setValue("Tag "+(i+1));
-    // ss().getRange(cr+(i%5+1)).setValue(0);
+    var cl = char(tagStart+(~~(i/5)*2)); //some magical integer division from js
+    ss().getRange(cl+(i%5+1)).setValue("Tag "+(i+1)); //default tag naming
+    //if I were to insert a filler number (0) after Tag 1, then the checking algorithm would detect something
+    //and would then create google form with 0 questions, so not sure what to do (could create a "filler variable" and check for that)
   }
+  update();
 }
 function update() {
-  tagArr.length = 0;
+  tagNameArr.length = 0; //dont know how to reset a js array, but heard this works
   for(let i=0;i<tagLength;i++) {
-    var cl = char(tagSrt+(~~(i/5)*2)); //magical integer division from js orz
-    tagArr.push(ss().getRange(cl+(i%5+1)).getValue());
+    var cl = char(tagStart+(~~(i/5)*2)); //magical integer division from js orz
+    tagNameArr.push(ss().getRange(cl+(i%5+1)).getValue());
   }
-  //validations
+  //validation for the tag column
   for (let i=0;i<header.length;i++) {
-    if(header[i][1]==="Tag") setValidation(header[i][0]+(headerSize+1)+":"+header[i][0]+ss().getMaxRows(), tagArr);
+    if(header[i][1]==="Tag") setValidation(header[i][0]+(headerSize+1)+":"+header[i][0]+ss().getMaxRows(), tagNameArr);
   }
 }
 function createTemplate() {
@@ -144,20 +144,20 @@ function createTemplate() {
   // let src = UrlFetchApp.fetch("https://imgur.com/QSzRPRL.png").getContent();
   // ss().insertImage(Utilities.newBlob(src, "image/png", "aName"), 4, 4, 70, -2);
   // ss().getRange("D4:D5").merge();
-  setStrategy("F1:F5", basic); setStrategy("H1:H5", basic);
+  setStrategy("F1:F5", basicStyling); setStrategy("H1:H5", basicStyling);
   
   //header info
   ss().setRowHeight(headerSize, 50);
   for (let i=0;i<header.length;i++) {
     ss().getRange(header[i][0]+headerSize).setValue(header[i][1]);
-  } ss().getRange(charOptSrt+headerSize+":"+charOptEnd+headerSize).setValue("OPTION");
+  } ss().getRange(charOptionStart+headerSize+":"+charOptionEnd+headerSize).setValue("OPTION");
 
   //validations
   for (let i=0;i<header.length;i++) {
     if(header[i][1]==="Question Type") setValidation(header[i][0]+(headerSize+1)+":"+header[i][0]+curRow, options);
     if(header[i][1]==="Required?") setValidation(header[i][0]+(headerSize+1)+":"+header[i][0]+curRow, bool);
     if(header[i][1]==="Other?") setValidation(header[i][0]+(headerSize+1)+":"+header[i][0]+curRow, bool);
-    if(header[i][1]==="Tag") setValidation(header[i][0]+(headerSize+1)+":"+header[i][0]+curRow, tagArr);
+    if(header[i][1]==="Tag") setValidation(header[i][0]+(headerSize+1)+":"+header[i][0]+curRow, tagNameArr);
   }
 
   //cell width formatting
@@ -176,19 +176,19 @@ function createTemplate() {
     if(header[i][1]==="Question Type" ||
         header[i][1]==="Points" ||
         header[i][1]==="Required?" ||
-        header[i][1]==="Other?") setStrategy(x, basic);
+        header[i][1]==="Other?") setStrategy(x, basicStyling);
     if(header[i][1]==="URL / ID") setStrategy(x, ["CLIP"]);
   } 
   
   //dunno how to categorize these
-  setStrategy(headerSize+":"+headerSize, basic);
+  setStrategy(headerSize+":"+headerSize, basicStyling);
   setStrategy("D1:D3", ["CLIP"]);
-  setStrategy("B4:B5", basic);
+  setStrategy("B4:B5", basicStyling);
 
   //colors
-  ss().getRange("A1:"+charEnd+curRow).setBackground(tan);
-  ss().getRange(headerSize+":"+headerSize).setBackground(green);
-  ss().getRange("A"+(headerSize+1)+":"+charEnd+curRow).setBackground(blue);
+  ss().getRange("A1:"+charEnd+curRow).setBackground(topBackground);
+  ss().getRange(headerSize+":"+headerSize).setBackground(highlight);
+  ss().getRange("A"+(headerSize+1)+":"+charEnd+curRow).setBackground(bottomBackground);
   ss().getRange("B3").setBackground(correctColor);
 
   //misc
@@ -196,8 +196,8 @@ function createTemplate() {
   setFormat(["A1:A2", "C1:C3", "E1:E3", "G1:G3", headerSize+":"+headerSize], "bold");
   setFormat(["A1:A2", "C1:C3", headerSize+":"+headerSize], 12);
   //top, left, bottom, right, vertical, horizontal, color, style)
-  ss().getRange("B3").setBorder(true, true, true, true, false, false, black, SA.BorderStyle.SOLID_MEDIUM);
-  ss().getRange(headerSize+":"+headerSize).setBorder(true, false, true, false, false, false, black, SA.BorderStyle.SOLID_MEDIUM);
+  ss().getRange("B3").setBorder(true, true, true, true, false, false, outline, SA.BorderStyle.SOLID_MEDIUM);
+  ss().getRange(headerSize+":"+headerSize).setBorder(true, false, true, false, false, false, outline, SA.BorderStyle.SOLID_MEDIUM);
 
   // happy message :)
   SA.getActiveSpreadsheet().toast("Remember to check the GitHub documentation or YouTube video for any help/clarifications. Have a good day :)", "Hello fellow human being");
@@ -238,8 +238,8 @@ function createForm() {
   //tag questions
   let cntTag = [], tagRnd, tagArray = [];
   for(let i=0;i<tagLength;i++) {
-    cntTag.push(data()[i%5][tagSrt+(~~(i/5)*2)]);
-    tagRnd = tagRnd || data()[i%5][tagSrt+(~~(i/5)*2)]>0;
+    cntTag.push(data()[i%5][tagStart+(~~(i/5)*2)]);
+    tagRnd = tagRnd || data()[i%5][tagStart+(~~(i/5)*2)]>0;
   }
 
   //random category of questions
@@ -385,8 +385,8 @@ function char(x) {
 }
 function findTagFromWord(x) {
   update();
-  for(let i=0;i<tagArr.length;i++) {
-    if(tagArr[i]===x) return i;
+  for(let i=0;i<tagNameArr.length;i++) {
+    if(tagNameArr[i]===x) return i;
   } return 314;
 }
 function setSize(range, size, letter) {
