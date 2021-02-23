@@ -103,18 +103,17 @@ function update() {
   }
 }
 
+//adds/removes columns to match the desired size
+function resizeSheet(desRow, desCol) {
+  let curRow = ss().getMaxRows(), curCol = ss().getMaxColumns();
+  if(curRow!==desRow) //Exception: Invalid argument is thrown if you .inserRowsAfter(X, 0)
+    curRow>desRow? ss().deleteRows(desRow+1, curRow-desRow):ss().insertRowsAfter(curRow-1, desRow-curRow);
+  if(curCol!==desCol)
+    curCol>desCol? ss().deleteColumns(desCol+1, curCol-desCol):ss().insertColumnsAfter(curCol-1, desCol-curCol);
+}
+
 function createSetting() {
   let name = ss().getName(); //used to get back the previous active sheet
-  let newSheet = sa().insertSheet("Settings"); //newSheet is now the active spreadsheet
-  sa().setActiveSheet(newSheet);
-
-  // setting up spreadsheet dimensions
-  let curRow = newSheet.getMaxRows(), curCol = newSheet.getMaxColumns();
-  let row = 10, col = 10;
-  if(curRow!==row) //Exception: Invalid argument is thrown if you .inserRowsAfter(X, 0)
-    curRow>row? ss().deleteRows(row+1, curRow-row):ss().insertRowsAfter(curRow-1, row-curRow);
-  if(curCol!==col)
-    curCol>col? ss().deleteColumns(col+1, curCol-col):ss().insertColumnsAfter(curCol-1, col-curCol);
 
   ss = function() {return SpreadsheetApp.getActiveSpreadsheet().getSheetByName(name);}
   sa().setActiveSheet(ss()); //UI now refocuses back to the original spreadsheet
@@ -130,16 +129,10 @@ function createTemplate() {
   //if the settings sheet does not exist, create it
   if(sa().getSheetByName("Settings")===null) createSetting();
 
-  // setting up spreadsheet dimensions
-  let curRow = ss().getMaxRows(), curCol = ss().getMaxColumns();
-  if(curRow!==desRow) //Exception: Invalid argument is thrown if you .inserRowsAfter(X, 0)
-    curRow>desRow? ss().deleteRows(desRow+1, curRow-desRow):ss().insertRowsAfter(curRow-1, desRow-curRow);
-  if(curCol!==desCol)
-    curCol>desCol? ss().deleteColumns(desCol+1, curCol-desCol):ss().insertColumnsAfter(curCol-1, desCol-curCol);
-  curRow = ss().getMaxRows(); curCol = ss().getMaxColumns();
+  resizeSheet(desRow, desCol);
 
   ss().clear(); //clears formatting
-  ss().setRowHeights(1, curRow, 21); ss().setColumnWidths(1, curCol, 100); //resize cells to default cell size
+  ss().setRowHeights(1, desRow, 21); ss().setColumnWidths(1, desCol, 100); //resize cells to default cell size
   ss().getRange(1, 1, desRow, desCol).setDataValidation(null); //clears data formatting so you dont need to create a new sheet
   while(ss().getImages().length>0) ss().getImages()[0].remove(); //removes all images in the sheet
 
@@ -189,10 +182,10 @@ function createTemplate() {
 
   //validations
   for (let i=0;i<header.length;i++) {
-    if(header[i][1]==="Question Type") setValidation(header[i][0]+(headerSize+1)+":"+header[i][0]+curRow, options);
-    if(header[i][1]==="Required?") setValidation(header[i][0]+(headerSize+1)+":"+header[i][0]+curRow, bool);
-    if(header[i][1]==="Other?") setValidation(header[i][0]+(headerSize+1)+":"+header[i][0]+curRow, bool);
-    if(header[i][1]==="Tag") setValidation(header[i][0]+(headerSize+1)+":"+header[i][0]+curRow, tagNameArr);
+    if(header[i][1]==="Question Type") setValidation(header[i][0]+(headerSize+1)+":"+header[i][0]+desRow, options);
+    if(header[i][1]==="Required?") setValidation(header[i][0]+(headerSize+1)+":"+header[i][0]+desRow, bool);
+    if(header[i][1]==="Other?") setValidation(header[i][0]+(headerSize+1)+":"+header[i][0]+desRow, bool);
+    if(header[i][1]==="Tag") setValidation(header[i][0]+(headerSize+1)+":"+header[i][0]+desRow, tagNameArr);
   }
 
   //cell width formatting
@@ -205,9 +198,9 @@ function createTemplate() {
   } ss().setColumnWidths(optionStart+1, optionLength, 175)
 
   //general formatting
-  setStrategy("A1:"+charEnd+curRow, ["WRAP", "VTOP", "HLEFT"]);
+  setStrategy("A1:"+charEnd+desRow, ["WRAP", "VTOP", "HLEFT"]);
   for (let i=0;i<header.length;i++) {
-    let x = header[i][0]+(headerSize+1)+":"+header[i][0]+curRow;
+    let x = header[i][0]+(headerSize+1)+":"+header[i][0]+desRow;
     if(header[i][1]==="Question Type" ||
         header[i][1]==="Points" ||
         header[i][1]==="Required?" ||
@@ -221,9 +214,9 @@ function createTemplate() {
   setStrategy("B4:B5", basicStyling);
 
   //colors
-  ss().getRange("A1:"+charEnd+curRow).setBackground(topBackground);
+  ss().getRange("A1:"+charEnd+desRow).setBackground(topBackground);
   ss().getRange(headerSize+":"+headerSize).setBackground(highlight);
-  ss().getRange("A"+(headerSize+1)+":"+charEnd+curRow).setBackground(bottomBackground);
+  ss().getRange("A"+(headerSize+1)+":"+charEnd+desRow).setBackground(bottomBackground);
   ss().getRange("B3").setBackground(correctColor);
 
   //misc
