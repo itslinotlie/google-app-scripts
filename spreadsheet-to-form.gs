@@ -116,26 +116,37 @@ function resizeSheet(desRow, desCol) {
 function createSetting() {
   let name = ss().getName(); //used to get back the previous active sheet
 
-  let newSheet = sa().insertSheet("Settings"); //creates a new sheet called Settings
-  sa().setActiveSheet(newSheet); //newSheet is now the active spreadsheet
+  //temporarily just so I dont have to delte the settings sheet whenever I test stuff
+  let newSheet = sa().getSheetByName("Settings");
+  if(newSheet!==null) sa().deleteSheet(newSheet);
+  newSheet = sa().insertSheet("Settings");
+  sa().setActiveSheet(newSheet);
 
-  resizeSheet(10, 10);
+  // let newSheet = sa().insertSheet("Settings"); //creates a new sheet called Settings
+  // sa().setActiveSheet(newSheet); //newSheet is now the active spreadsheet
+
+  let settingRow = 9, settingCol = 11;
+  resizeSheet(settingRow, settingCol);
+  ss().setRowHeights(1, settingRow, 25); ss().setColumnWidths(1, settingCol, 150); //resize cells to default cell size
+  setStrategy("A1:"+char(settingRow)+settingCol, basicStyling);
 
   ss().getRange("A1").setValue("Global Settings for all your Sheets");
   
   ss().getRange("A3").setValue("Initial Settings");
   ss().getRange("A5").setValue("Folder ID");
-  ss().getRange("A6").setValue("Option Length");
-  ss().getRange("A7").setValue("Tag Amount");
-  ss().getRange("A8").setValue("Initial Sheet Row");
-  ss().getRange("A9").setValue("Initial Sheet Col");
-  
-  ss().getRange("C3").setValue("Colour Settings");
-  ss().getRange("C5").setValue("Correct Colour");
-  ss().getRange("C6").setValue("Highlight Colour");
-  ss().getRange("C7").setValue("Top Background");
-  ss().getRange("C8").setValue("Bottom Background");
-  ss().getRange("C9").setValue("Outline");
+  ss().getRange("A6").setValue("Option Length");     ss().getRange("B6").setValue(optionLength);
+  ss().getRange("A7").setValue("Tag Amount");        ss().getRange("B7").setValue(tagLength);
+  ss().getRange("A8").setValue("Initial Sheet Row"); ss().getRange("B8").setValue(desRow);
+  ss().getRange("A9").setValue("Initial Sheet Col"); ss().getRange("B9").setValue(desCol);
+
+  ss().getRange("C3").setValue("Colour Settings");   
+  ss().getRange("C5").setValue("Correct Colour");    ss().getRange("D5").setBackground(correctColor);
+  ss().getRange("C6").setValue("Highlight Colour");  ss().getRange("D6").setBackground(highlight);
+  ss().getRange("C7").setValue("Top Background");    ss().getRange("D7").setBackground(topBackground);
+  ss().getRange("C8").setValue("Bottom Background"); ss().getRange("D8").setBackground(bottomBackground);
+  ss().getRange("C9").setValue("Outline");           ss().getRange("D9").setBackground(outline);
+  ss().getRange("D5").setBorder(true, true, true, true, false, false, "#fbaed2", SA.BorderStyle.SOLID_THICK);
+  for(let i=5;i<=9;i++) ss().getRange("D"+i).setBorder(true, true, true, true, false, false, "#fbaed2", SA.BorderStyle.SOLID_THICK); //range notation doesn't appear to work so for loop it is
 
   ss().getRange("E3").setValue("Tag Naming");
   for(let i=0;i<tagLength;i++) {
