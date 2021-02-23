@@ -66,6 +66,7 @@ function onOpen(e) {
   menu.addItem("Create Google Form", "createForm").addToUi();
   menu.addItem("Link to Documentation", "linkDoc").addToUi();
   menu.addItem("Update Settings", "update").addToUi();
+  menu.addItem("Delete later", "createSetting").addToUi();
   if(ss().getRange(alertCellValue).getValue()===true) //sometimes this gives errors (but code still runs), sometimes it doesn't /shrug
     SA.getActiveSpreadsheet().toast("Remember to check the GitHub documentation or YouTube video for any help/clarifications. Have a good day :)", "Hello fellow human being");
   // keeping vvv iin case I do need the e.authMode and I forget that its a thing and end up on stackoverflow for hours
@@ -115,8 +116,38 @@ function resizeSheet(desRow, desCol) {
 function createSetting() {
   let name = ss().getName(); //used to get back the previous active sheet
 
-  ss = function() {return SpreadsheetApp.getActiveSpreadsheet().getSheetByName(name);}
-  sa().setActiveSheet(ss()); //UI now refocuses back to the original spreadsheet
+  let newSheet = sa().insertSheet("Settings"); //creates a new sheet called Settings
+  sa().setActiveSheet(newSheet); //newSheet is now the active spreadsheet
+
+  resizeSheet(10, 10);
+
+  ss().getRange("A1").setValue("Global Settings for all your Sheets");
+  
+  ss().getRange("A3").setValue("Initial Settings");
+  ss().getRange("A5").setValue("Folder ID");
+  ss().getRange("A6").setValue("Option Length");
+  ss().getRange("A7").setValue("Tag Amount");
+  ss().getRange("A8").setValue("Initial Sheet Row");
+  ss().getRange("A9").setValue("Initial Sheet Col");
+  
+  ss().getRange("C3").setValue("Colour Settings");
+  ss().getRange("C5").setValue("Correct Colour");
+  ss().getRange("C6").setValue("Highlight Colour");
+  ss().getRange("C7").setValue("Top Background");
+  ss().getRange("C8").setValue("Bottom Background");
+  ss().getRange("C9").setValue("Outline");
+
+  ss().getRange("E3").setValue("Tag Naming");
+  for(let i=0;i<tagLength;i++) {
+    var cl = char(5+(~~(i/5))); //some magical integer division from js
+    tagNameArr.push("Tag "+(i+1));
+    ss().getRange(cl+(i%5+5)).setValue(tagNameArr[i]); //default tag naming
+    //if I were to insert a filler number (0) after Tag 1, then the checking algorithm would detect something
+    //and would then create google form with 0 questions, so not sure what to do (could create a "filler variable" and check for that)
+  }
+
+  // ss = function() {return SpreadsheetApp.getActiveSpreadsheet().getSheetByName(name);}
+  // sa().setActiveSheet(ss()); //UI now refocuses back to the original spreadsheet
 }
 
 //first menu item, creates template
