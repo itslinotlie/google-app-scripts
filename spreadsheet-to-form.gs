@@ -50,6 +50,7 @@ let titleNumber = 1, descriptionNumber = 1;
 let alertCell = "A4", alertCellValue = "B4", randomOptionCell = "A5", randomOptionCellValue = "B5";
 
 //workaround to Authmode.NONE because publication requirements
+var sa = function() {return SpreadsheetApp.getActiveSpreadsheet();}
 var ss = function() {return SpreadsheetApp.getActiveSpreadsheet().getActiveSheet()}
 var data = function() {return SpreadsheetApp.getActiveSpreadsheet().getActiveSheet().getDataRange().getValues()}
 var question;
@@ -102,6 +103,23 @@ function update() {
   }
 }
 
+function createSetting() {
+  let name = ss().getName(); //used to get back the previous active sheet
+  let newSheet = sa().insertSheet("Settings"); //newSheet is now the active spreadsheet
+  sa().setActiveSheet(newSheet);
+
+  // setting up spreadsheet dimensions
+  let curRow = newSheet.getMaxRows(), curCol = newSheet.getMaxColumns();
+  let row = 10, col = 10;
+  if(curRow!==row) //Exception: Invalid argument is thrown if you .inserRowsAfter(X, 0)
+    curRow>row? ss().deleteRows(row+1, curRow-row):ss().insertRowsAfter(curRow-1, row-curRow);
+  if(curCol!==col)
+    curCol>col? ss().deleteColumns(col+1, curCol-col):ss().insertColumnsAfter(curCol-1, col-curCol);
+
+  ss = function() {return SpreadsheetApp.getActiveSpreadsheet().getSheetByName(name);}
+  sa().setActiveSheet(ss()); //UI now refocuses back to the original spreadsheet
+}
+
 //first menu item, creates template
 function createTemplate() {
   let x = data().length; //checker to see if data is valid is "out of bounds" for empty spreadsheet, but js is weird and I need use variable rather than data().length
@@ -109,6 +127,9 @@ function createTemplate() {
     let response = UI.alert("Are you sure? (all information will be cleared)", UI.ButtonSet.YES_NO);
     if(response===UI.Button.NO) return;
   }
+  //if the settings sheet does not exist, create it
+  if(sa().getSheetByName("Settings")===null) createSetting();
+
   // setting up spreadsheet dimensions
   let curRow = ss().getMaxRows(), curCol = ss().getMaxColumns();
   if(curRow!==desRow) //Exception: Invalid argument is thrown if you .inserRowsAfter(X, 0)
