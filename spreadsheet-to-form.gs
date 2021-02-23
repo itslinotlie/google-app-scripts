@@ -55,6 +55,8 @@ var ss = function() {return SpreadsheetApp.getActiveSpreadsheet().getActiveSheet
 var data = function() {return SpreadsheetApp.getActiveSpreadsheet().getActiveSheet().getDataRange().getValues()}
 var question;
 
+var sheetName;
+
 //google script triggers for when certain events happen
 function onInstall(e) {
   onOpen(e);
@@ -93,15 +95,40 @@ function setupTag() {
 
 //updates tagNames, updates Tag column validations
 function update() {
+  sheetName = ss().getName(); //used to get back to the previous sheet
+
+  //if the settings sheet does not exist, create it
+  if(sa().getSheetByName("Settings")==null) createSetting();
+  sa().setActiveSheet(sa().getSheetByName("Settings")); //need to switch active sheet to settings to get the tag names
+
   tagNameArr.length = 0; //dont know how to reset a js array, but heard this works
   for(let i=0;i<tagLength;i++) {
-    var cl = char(tagStart+(~~(i/5)*2)); //magical integer division from js orz
-    tagNameArr.push(ss().getRange(cl+(i%5+1)).getValue());
+    var cl = char(5+(~~(i/5))); //some magical integer division from js
+    tagNameArr.push(ss().getRange(cl+(i%5+5)).getValue());
   }
-  //validation for the tag column
-  for (let i=0;i<header.length;i++) {
-    if(header[i][1]==="Tag") setValidation(header[i][0]+(headerSize+1)+":"+header[i][0]+ss().getMaxRows(), tagNameArr);
+
+  folderID     = ss().getRange("B5").getValue();
+  optionLength = ss().getRange("B6").getValue(); optionEnd = optionStart+optionLength;
+  tagLength    = ss().getRange("B7").getValue(); tagStart = optionStart+7;
+  desRow       = ss().getRange("B8").getValue(); desCol = optionLength+10;
+  charOptionStart = char(optionEnd-optionLength+1); charOptionEnd = char(optionEnd);
+  charEnd = char(desCol);
+
+  correctColor     = ss().getRange("D5").getBackground();
+  highlight        = ss().getRange("D6").getBackground();
+  topBackground    = ss().getRange("D7").getBackground();
+  bottomBackground = ss().getRange("D8").getBackground();
+  outline          = ss().getRange("D9").getBackground();
+
+  sa().setActiveSheet(sa().getSheetByName(sheetName));
+  // //validation for the tag column
+  for (let i=0;i<sa().getSheets().length;i++) {
+    sa().setActiveSheet(sa().getSheets()[i]);
+    for (let j=0;j<header.length;j++) {
+      if(header[j][1]==="Tag") setValidation(header[j][0]+(headerSize+1)+":"+header[j][0]+ss().getMaxRows(), tagNameArr);
+    }
   }
+  sa().setActiveSheet(sa().getSheetByName(sheetName));
 }
 
 //adds/removes columns to match the desired size
@@ -112,18 +139,21 @@ function resizeSheet(desRow, desCol) {
   if(curCol!==desCol)
     curCol>desCol? ss().deleteColumns(desCol+1, curCol-desCol):ss().insertColumnsAfter(curCol-1, desCol-curCol);
 }
-
 function createSetting() {
-  let name = ss().getName(); //used to get back the previous active sheet
+
+  sheetName = ss().getName(); //used to get back the previous active sheet
 
   //temporarily just so I dont have to delte the settings sheet whenever I test stuff
-  let newSheet = sa().getSheetByName("Settings");
-  if(newSheet!==null) sa().deleteSheet(newSheet);
-  newSheet = sa().insertSheet("Settings");
-  sa().setActiveSheet(newSheet);
+  // let newSheet = sa().getSheetByName("Settings");
+  // if(newSheet!==null) sa().deleteSheet(newSheet);
+  // newSheet = sa().insertSheet("Settings");
+  // sa().setActiveSheet(newSheet);
 
-  // let newSheet = sa().insertSheet("Settings"); //creates a new sheet called Settings
-  // sa().setActiveSheet(newSheet); //newSheet is now the active spreadsheet
+  //IMPORTANT
+  //need to make note that the changes will only be applied to new spreadsheets
+
+  let newSheet = sa().insertSheet("Settings"); //creates a new sheet called Settings
+  sa().setActiveSheet(newSheet); //newSheet is now the active spreadsheet
 
   let settingRow = 9, settingCol = 11;
   resizeSheet(settingRow, settingCol);
@@ -157,8 +187,7 @@ function createSetting() {
     //and would then create google form with 0 questions, so not sure what to do (could create a "filler variable" and check for that)
   }
 
-  // ss = function() {return SpreadsheetApp.getActiveSpreadsheet().getSheetByName(name);}
-  // sa().setActiveSheet(ss()); //UI now refocuses back to the original spreadsheet
+  sa().setActiveSheet(sa().getSheetByName(sheetName)); //UI now refocuses back to the original spreadsheet
 }
 
 //first menu item, creates template
@@ -168,8 +197,9 @@ function createTemplate() {
     let response = UI.alert("Are you sure? (all information will be cleared)", UI.ButtonSet.YES_NO);
     if(response===UI.Button.NO) return;
   }
+  update();
   //if the settings sheet does not exist, create it
-  if(sa().getSheetByName("Settings")===null) createSetting();
+  if(sa().getSheetByName("Settings")==null) createSetting();
 
   resizeSheet(desRow, desCol);
 
@@ -177,6 +207,8 @@ function createTemplate() {
   ss().setRowHeights(1, desRow, 21); ss().setColumnWidths(1, desCol, 100); //resize cells to default cell size
   ss().getRange(1, 1, desRow, desCol).setDataValidation(null); //clears data formatting so you dont need to create a new sheet
   while(ss().getImages().length>0) ss().getImages()[0].remove(); //removes all images in the sheet
+
+  ss().getRange("B2").setValue(desRow+" | "+desCol+" = "+optionLength);
 
   //info to fill in/use
   ss().getRange("A1").setValue("Form Title:");
@@ -192,7 +224,7 @@ function createTemplate() {
   ss().getRange("C3").setValue("Private URL:");
   ss().getRange("C4").setValue("Random subset of questions based on category");
   ss().getRange("C4:C5").merge(); setStrategy("C4", ["WRAP"]);
-  setupTag();
+  // setupTag();
 
   //various boolean fields
   ss().getRange("E1").setValue("One Response per User?");
