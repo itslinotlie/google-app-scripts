@@ -55,7 +55,8 @@ let requiredNumber = find("Required?"), otherNumber = find("Other?"), instructio
 let titleNumber = 1, descriptionNumber = 1;
 
 //letter number combo
-let alertCell = "A4", alertCellValue = "B4", randomOptionCell = "A5", randomOptionCellValue = "B5";
+let alertCell = "J5", randomOptionCell = "J6";
+let alertBool = true, randomOptionBool = false;
 
 //workaround to Authmode.NONE because publication requirements
 var sa = function() {return SpreadsheetApp.getActiveSpreadsheet();}
@@ -77,14 +78,16 @@ function onOpen(e) {
   menu.addItem("Link to Documentation", "linkDoc").addToUi();
   menu.addItem("Update Settings", "update").addToUi();
   menu.addItem("Delete later", "createSetting").addToUi();
-  if(ss().getRange(alertCellValue).getValue()===true) //sometimes this gives errors (but code still runs), sometimes it doesn't /shrug
+  alertBool = sa().getSheetByName("Settings").getRange(alertCell).getValue();
+  if(alertBool) //sometimes this gives errors (but code still runs), sometimes it doesn't /shrug
     SA.getActiveSpreadsheet().toast("Remember to check the GitHub documentation or YouTube video for any help/clarifications. Have a good day :)", "Hello fellow human being");
   // keeping vvv iin case I do need the e.authMode and I forget that its a thing and end up on stackoverflow for hours
-  // if(e.authMode !== ScriptApp.AuthMode.NONE && ss().getRange(alertCellValue).getValue()===true) //sometimes this gives errors (but code still runs), sometimes it doesn't /shrug
+  // if(e.authMode !== ScriptApp.AuthMode.NONE && ss().getRange(alertCell).getValue()===true) //sometimes this gives errors (but code still runs), sometimes it doesn't /shrug
 }
 function onEdit(e) { //alerts user if they checked GRID question type, the row below should be void
   let row = e.range.getRow(), col = char(e.range.getColumn()), range = col+row;
-  if(col!=="A" || row<=headerSize || ss().getRange(alertCellValue).getValue()===false) return;
+  alertBool = sa().getSheetByName("Settings").getRange(alertCell).getValue();
+  if(col!=="A" || row<=headerSize || !alertBool) return;
   if(ss().getRange(range).getValue()==="MCGRID" || ss().getRange(range).getValue()==="CHECKGRID") 
     UI.alert("Friendly Reminder", "Remember that the cell below "+range+" should be the columns for the "
     +ss().getRange(range).getValue()+" and nothing else. You can turn alerts off by setting the B4 cell to FALSE", UI.ButtonSet.OK);
@@ -104,6 +107,7 @@ function update() {
     tagNameArr.push(ss().getRange(cl+(i%5+5)).getValue());
   }
 
+  //initial settings
   folderID     = ss().getRange("B5").getValue();
   optionLength = ss().getRange("B6").getValue(); optionEnd = optionStart+optionLength;
   tagLength    = ss().getRange("B7").getValue(); tagStart = optionStart+7;
@@ -111,16 +115,22 @@ function update() {
   charOptionStart = char(optionEnd-optionLength+1); charOptionEnd = char(optionEnd);
   charEnd = char(desCol);
 
+  //colour settings
   correctColor     = ss().getRange("D5").getBackground();
   highlight        = ss().getRange("D6").getBackground();
   topBackground    = ss().getRange("D7").getBackground();
   bottomBackground = ss().getRange("D8").getBackground();
   outline          = ss().getRange("D9").getBackground();
 
+  //boolean settings
   for(let i=0;i<formSettings.length;i++) formSettings[i][1] = ss().getRange("H"+(5+i)).getValue();
 
-  sa().setActiveSheet(sa().getSheetByName(sheetName));
+  //misc. settings
+  alertBool        = ss().getRange(alertCell).getValue();
+  randomOptionBool = ss().getRange(randomOptionCell).getValue();
+
   //validation for the tag column
+  sa().setActiveSheet(sa().getSheetByName(sheetName));
   for (let i=0;i<sa().getSheets().length;i++) {
     if(sa().getSheets()[i].getName()==="Settings") continue;
     sa().setActiveSheet(sa().getSheets()[i]);
@@ -140,7 +150,6 @@ function resizeSheet(desRow, desCol) {
     curCol>desCol? ss().deleteColumns(desCol+1, curCol-desCol):ss().insertColumnsAfter(curCol-1, desCol-curCol);
 }
 function createSetting() {
-
   sheetName = ss().getName(); //used to get back the previous active sheet
 
   //temporarily just so I dont have to delte the settings sheet whenever I test stuff
@@ -195,13 +204,19 @@ function createSetting() {
   } 
   setStrategy("G5:G10", ["HLEFT"]);
 
+  ss().getRange("I3").setValue("Misc. Settings");
+  ss().getRange("I5").setValue("I Want Alerts");     ss().getRange("J5").setValue(alertBool);
+  ss().getRange("I6").setValue("Randomize OPTIONS"); ss().getRange("J6").setValue(randomOptionBool);
+  setValidation("J5:J6", bool);
+
   sa().setActiveSheet(sa().getSheetByName(sheetName)); //UI now refocuses back to the original spreadsheet
 }
 
 //first menu item, creates template
 function createTemplate() {
   let x = data().length; //checker to see if data is valid is "out of bounds" for empty spreadsheet, but js is weird and I need use variable rather than data().length
-  if((x!=1) && (data()[0][1]!=="" || ss().getLastRow()>6) && data()[3][1]) { //have title? have info in the bottom?
+  alertBool = sa().getSheetByName("Settings").getRange(alertCell).getValue();
+  if(alertBool && (x!=1) && (data()[0][1]!=="" || ss().getLastRow()>6) && data()[3][1]) { //have title? have info in the bottom?
     let response = UI.alert("Are you sure? (all information will be cleared)", UI.ButtonSet.YES_NO);
     if(response===UI.Button.NO) return;
   }
@@ -217,11 +232,6 @@ function createTemplate() {
   //info to fill in/use
   ss().getRange("A1").setValue("Form Title:");
   ss().getRange("A2").setValue("Form Desciption:");
-  ss().getRange("A3").setValue("Highlight Color");
-  ss().getRange(alertCell).setValue("I Want Alerts");
-  setValidation(alertCellValue, bool); ss().getRange(alertCellValue).setValue("TRUE");
-  ss().getRange(randomOptionCell).setValue("Randomize OPTIONS");
-  setValidation(randomOptionCellValue, bool); ss().getRange(randomOptionCellValue).setValue("FALSE");
   ss().getRange("C1").setValue("Folder ID:");
   ss().getRange("D1").setValue(folderID);
   ss().getRange("C2").setValue("Public URL:");
@@ -276,18 +286,17 @@ function createTemplate() {
   ss().getRange("A1:"+charEnd+desRow).setBackground(topBackground);
   ss().getRange(headerSize+":"+headerSize).setBackground(highlight);
   ss().getRange("A"+(headerSize+1)+":"+charEnd+desRow).setBackground(bottomBackground);
-  ss().getRange("B3").setBackground(correctColor);
 
   //misc
   ss().setFrozenRows(headerSize); ss().setFrozenColumns(2);
   // setFormat(["A1:A2", "C1:C3", "E1:E3", "G1:G3", headerSize+":"+headerSize], "bold");
   // setFormat(["A1:A2", "C1:C3", headerSize+":"+headerSize], 12);
   //top, left, bottom, right, vertical, horizontal, color, style)
-  ss().getRange("B3").setBorder(true, true, true, true, false, false, outline, SA.BorderStyle.SOLID_MEDIUM);
   ss().getRange(headerSize+":"+headerSize).setBorder(true, false, true, false, false, false, outline, SA.BorderStyle.SOLID_MEDIUM);
 
   // happy message :)
-  if(ss().getRange(alertCellValue).getValue()===true)
+  alertBool = sa().getSheetByName("Settings").getRange(alertCell).getValue();
+  if(alertBool)
     SA.getActiveSpreadsheet().toast("Remember to check the GitHub documentation or YouTube video for any help/clarifications. Have a good day :)", "Hello fellow human being");
 }
 
@@ -296,7 +305,8 @@ function createForm() {
   update();
 
   //subtle plug (:
-  if(ss().getRange(alertCellValue).getValue()===true) //sometimes this gives errors (but code still runs), sometimes it doesn't /shrug
+  alertBool = sa().getSheetByName("Settings").getRange(alertCell).getValue();
+  if(alertBool)
     SA.getActiveSpreadsheet().toast("Remember to check the GitHub documentation or YouTube video for any help/clarifications. Have a good day :)", "Hello fellow human being");
   
   let row = ss().getDataRange().getNumRows();
@@ -429,7 +439,8 @@ function addOptions(i) {
     else arr.push(question.createChoice(data()[i][j], false));
   }
   if(arr.length===0) return;
-  if(ss().getRange(randomOptionCellValue)===true) shuffle(arr);
+  randomOptionBool = sa().getSheetByName("Settings").getRange(randomOptionCell);
+  if(randomOptionBool) shuffle(arr);
   question.setChoices(arr);
 }
 function addGrid(x) {
