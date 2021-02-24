@@ -172,20 +172,25 @@ function createSetting() {
   // let newSheet = sa().insertSheet("Settings"); //creates a new sheet called Settings
   // sa().setActiveSheet(newSheet); //newSheet is now the active spreadsheet
 
-  let settingRow = 20, settingCol = 11;
+  let settingRow = 20, settingCol = 9;
   resizeSheet(settingRow, settingCol);
   ss().setRowHeights(1, settingRow, 25); ss().setColumnWidths(1, settingCol, 175);
-  setStrategy("A1:"+char(settingCol)+settingRow, basicStyling);
+  //formatting
+  setStrategy("A1:"+char(settingCol)+settingRow, basicStyling); //everything format
   setStrategy("A1:"+char(settingCol)+settingRow, ["WRAP"]);
+  ss().getRange("A1:"+char(settingCol)+settingRow).setBackground(bottomBackground);
+  
+  setFormat(["A1", "A3", "A11", "C3", "E3", "G3", "E12"], ["bold", 12]); //headers
+  setStrategy("A1", ["HLEFT", "FLOW"]); //title
 
-  ss().getRange("A1").setValue("Global Settings for all your Sheets");
+  ss().getRange("A1").setValue("The Global Settings for all your Sheets");
   
   ss().getRange("A3").setValue("Initial Settings");
   ss().getRange("A5").setValue("Folder ID");
   ss().getRange("A6").setValue("Option Length");     ss().getRange("B6").setValue(optionLength);
   ss().getRange("A7").setValue("Tag Amount");        ss().getRange("B7").setValue(tagLength);
-  ss().getRange("A8").setValue("Initial Sheet Row"); ss().getRange("B8").setValue(desRow);
-  ss().getRange("A9").setValue("Initial Sheet Col"); ss().getRange("B9").setValue(desCol);
+  ss().getRange("A8").setValue("Initial Sheet Row Height"); ss().getRange("B8").setValue(desRow);
+  ss().getRange("A9").setValue("Initial Sheet Col Width"); ss().getRange("B9").setValue(desCol);
 
   ss().getRange("C3").setValue("Colour Settings");   
   ss().getRange("C5").setValue("Correct Colour");    ss().getRange("D5").setBackground(correctColor);
@@ -201,8 +206,6 @@ function createSetting() {
     var cl = char(5+(~~(i/5))); //some magical integer division from js
     tagNameArr.push("Tag "+(i+1));
     ss().getRange(cl+(i%5+tagGap)).setValue(tagNameArr[i]); //default tag naming
-    //if I were to insert a filler number (0) after Tag 1, then the checking algorithm would detect something
-    //and would then create google form with 0 questions, so not sure what to do (could create a "filler variable" and check for that)
   }
 
   ss().getRange("E3").setValue("Boolean Settings");
@@ -210,14 +213,22 @@ function createSetting() {
     ss().getRange("E"+(5+i)).setValue(formSettings[i][0]);
     ss().getRange("F"+(5+i)).setValue(formSettings[i][1]);
     setValidation("F"+(5+i), bool);
-  } 
-  setStrategy("E5:E10", ["HLEFT"]);
+  } setStrategy("E5:E10", ["HLEFT"]);
 
   ss().getRange("G3").setValue("Misc. Settings");
   ss().getRange("G5").setValue("I Want Alerts");     ss().getRange("H5").setValue(alertBool);
   ss().getRange("G6").setValue("Randomize OPTIONS"); ss().getRange("H6").setValue(randomOptionBool);
   setValidation("H5:H6", bool);
 
+  //info
+  ss().getRange("A11").setValue("How to Use This Program"); setStrategy("A11", ["HLEFT", "FLOW"]); //title
+  ss().getRange("A13:C19").merge(); setStrategy("A13", ["HLEFT"]);
+  ss().getRange("A13").setValue("\tI will mention some things that could cause misconfusion below:\n\n"
+    + "\t1. Highlight the cell with the \"Correct Colour\" to mark that cell as the correct answer (see doc. for limitations)\n"
+    + "\t2. The Boolean Settings are options in the checkmark boxes in Form > Setting.\n"
+    + "\t3. You can change the Tag Names on the Settings sheet, just make sure to \"Update Settings\" in the menu bar\n"
+    + "\n\tFinal thoughts: I think the program is fairly intuitive, but explaining everything here "
+    + "would be slightly messy. Instead, click on the \"Link to Documentation\" in the menu bar for the full documentation.");
   sa().setActiveSheet(sa().getSheetByName(sheetName)); //UI now refocuses back to the original spreadsheet
 }
 
@@ -486,6 +497,7 @@ function setSize(range, size, letter) {
 function setStrategy(range, type) {
   for (let i=0;i<type.length;i++) {
     if(type[i]==="WRAP") ss().getRange(range).setWrapStrategy(SA.WrapStrategy.WRAP);
+    else if(type[i]==="FLOW") ss().getRange(range).setWrapStrategy(SA.WrapStrategy.OVERFLOW);
     else if(type[i]==="CLIP") ss().getRange(range).setWrapStrategy(SA.WrapStrategy.CLIP);
     else if(type[i]==="VTOP") ss().getRange(range).setVerticalAlignment("top");
     else if(type[i]==="VCENTER") ss().getRange(range).setVerticalAlignment("middle");
