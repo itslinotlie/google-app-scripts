@@ -90,17 +90,6 @@ function onEdit(e) { //alerts user if they checked GRID question type, the row b
     +ss().getRange(range).getValue()+" and nothing else. You can turn alerts off by setting the B4 cell to FALSE", UI.ButtonSet.OK);
 }
 
-//sets up the default tag names and updates tag column validations
-function setupTag() {
-  for(let i=0;i<tagLength;i++) {
-    var cl = char(tagStart+(~~(i/5)*2)); //some magical integer division from js
-    ss().getRange(cl+(i%5+1)).setValue("Tag "+(i+1)); //default tag naming
-    //if I were to insert a filler number (0) after Tag 1, then the checking algorithm would detect something
-    //and would then create google form with 0 questions, so not sure what to do (could create a "filler variable" and check for that)
-  }
-  update();
-}
-
 //updates tagNames, updates Tag column validations
 function update() {
   sheetName = ss().getName(); //used to get back to the previous sheet
@@ -202,6 +191,7 @@ function createSetting() {
   for(let i=0;i<formSettings.length;i++) {
     ss().getRange("G"+(5+i)).setValue(formSettings[i][0]);
     ss().getRange("H"+(5+i)).setValue(formSettings[i][1]);
+    setValidation("H"+(5+i), bool);
   } 
   setStrategy("G5:G10", ["HLEFT"]);
 
@@ -236,37 +226,18 @@ function createTemplate() {
   ss().getRange("D1").setValue(folderID);
   ss().getRange("C2").setValue("Public URL:");
   ss().getRange("C3").setValue("Private URL:");
-  // ss().getRange("C4").setValue("Random subset of questions based on category");
-  // ss().getRange("C4:C5").merge(); setStrategy("C4", ["WRAP"]);
-  // setupTag();
 
-  //various boolean fields
-  // ss().getRange("E1").setValue("One Response per User?");
-  // ss().getRange("E2").setValue("Can Edit Response?");
-  // ss().getRange("E3").setValue("Collects Email?");
-  // setValidation("F1:F3", bool);
-  // ss().getRange("G1").setValue("Progress Bar?");
-  // ss().getRange("G2").setValue("Link to Respond Again?");
-  // ss().getRange("G3").setValue("Publishing Summary?");
-  // setValidation("H1:H3", bool);
-
-  //random subset of questions
-  // ss().getRange("E4").setValue("# of MC:");
-  // ss().getRange("E5").setValue("# of SHORTANSWER:");
-  // ss().getRange("G4").setValue("# of CHECKBOX:");
-  // ss().getRange("G5").setValue("# of PARAGRAPH:");
-
-  //kinda related to ^^^
-  // let src = UrlFetchApp.fetch("https://imgur.com/QSzRPRL.png").getContent();
-  // ss().insertImage(Utilities.newBlob(src, "image/png", "aName"), 4, 4, 70, -2);
-  // ss().getRange("D4:D5").merge();
-  // setStrategy("F1:F5", basicStyling); setStrategy("H1:H5", basicStyling);
-  
   //header info
   ss().setRowHeight(headerSize, 50);
   for (let i=0;i<header.length;i++) {
     ss().getRange(header[i][0]+headerSize).setValue(header[i][1]);
   } ss().getRange(charOptionStart+headerSize+":"+charOptionEnd+headerSize).setValue("OPTION");
+
+  ss().getRange("E2").setValue("Number of questions from those tags you want to have->");
+  for(let i=0;i<tagLength;i++) {
+    let tagChar = char(7+(~~(i/5))*2);
+    ss().getRange(tagChar+(i%5+1)).setValue(tagNameArr[i]);
+  }
 
   //validations
   for (let i=0;i<header.length;i++) {
@@ -298,8 +269,8 @@ function createTemplate() {
   
   //dunno how to categorize these
   setStrategy(headerSize+":"+headerSize, basicStyling);
-  setStrategy("D1:D3", ["CLIP"]);
-  setStrategy("B4:B5", basicStyling);
+  // setStrategy("D1:D3", ["CLIP"]);
+  // setStrategy("B4:B5", basicStyling);
 
   //colors
   ss().getRange("A1:"+charEnd+desRow).setBackground(topBackground);
@@ -309,8 +280,8 @@ function createTemplate() {
 
   //misc
   ss().setFrozenRows(headerSize); ss().setFrozenColumns(2);
-  setFormat(["A1:A2", "C1:C3", "E1:E3", "G1:G3", headerSize+":"+headerSize], "bold");
-  setFormat(["A1:A2", "C1:C3", headerSize+":"+headerSize], 12);
+  // setFormat(["A1:A2", "C1:C3", "E1:E3", "G1:G3", headerSize+":"+headerSize], "bold");
+  // setFormat(["A1:A2", "C1:C3", headerSize+":"+headerSize], 12);
   //top, left, bottom, right, vertical, horizontal, color, style)
   ss().getRange("B3").setBorder(true, true, true, true, false, false, outline, SA.BorderStyle.SOLID_MEDIUM);
   ss().getRange(headerSize+":"+headerSize).setBorder(true, false, true, false, false, false, outline, SA.BorderStyle.SOLID_MEDIUM);
@@ -366,14 +337,6 @@ function createForm() {
     tagRnd = tagRnd || data()[i%5][tagStart+(~~(i/5)*2)]>0;
   }
 
-  //random category of questions
-  // let rnd, arrRnd = [], cntRnd = [0, 0, 0, 0]; //MC, CB, SA, PG respectively
-  // if(data()[3][5]!=='') cntRnd[0] = data()[3][5];
-  // if(data()[3][7]!=='') cntRnd[1] = data()[3][7];
-  // if(data()[4][5]!=='') cntRnd[2] = data()[4][5];
-  // if(data()[4][7]!=='') cntRnd[3] = data()[4][7];
-  // for (let i=0;i<4;i++) rnd = rnd || cntRnd[i]>0;
-
   //adding questions to form
   for (let i=headerSize;i<row;i++) {
     let x = data()[i][0]; 
@@ -390,14 +353,6 @@ function createForm() {
       if(flag) tagArray.push(i);
       continue;
     }
-    // else if(rnd) {
-    //   if(x==="MC" && cntRnd[0]>0
-    //     || x==="CHECKBOX" && cntRnd[1]>0
-    //     || x==="SHORTANSWER" && cntRnd[2]>0
-    //     || x==="PARAGRAPH" && cntRnd[3]>0
-    //   ) arrRnd.push(i);
-    //   continue;
-    // }
     if(x==="MC") question = form.addMultipleChoiceItem();
     else if(x==="CHECKBOX") question = form.addCheckboxItem();
     else if(x==="MCGRID") question = form.addGridItem();  
@@ -431,20 +386,6 @@ function createForm() {
       }
     }
   } 
-  // else if(rnd) {
-  //   for (let i=0;i<arrRnd.length;i++) {
-  //     let x = data()[arrRnd[i]][0], flag = true;
-  //     if(x==='') continue;
-  //     for (let j=0;j<cntRnd.length;j++) {
-  //       if(cntRnd[j]>0) flag = false;
-  //     } if(flag) break;
-  //     if(x==="MC"               && cntRnd[0]-->0) question = form.addMultipleChoiceItem();
-  //     else if(x==='CHECKBOX'    && cntRnd[1]-->0) question = form.addCheckboxItem();
-  //     else if(x==='SHORTANSWER' && cntRnd[2]-->0) question = form.addTextItem();
-  //     else if(x==='PARAGRAPH'   && cntRnd[3]-->0) question = form.addParagraphTextItem();
-  //     setUpQuestion(arrRnd[i]);
-  //   }
-  // }
 }
 const choices = [IT.CHECKBOX, IT.MULTIPLE_CHOICE, IT.LIST];
 const visual = [IT.IMAGE, IT.VIDEO];
