@@ -1,7 +1,7 @@
 //customizable variables (for when I create a global settings page)
 var optionLength = 5;
 var desRow = 21, desCol = optionLength+10;
-var headerSize = 6;
+var headerSize = 5;
 var tagLength = 10;
 var folderID = "";
 var correctColor = "#29d57b";
@@ -57,7 +57,7 @@ let titleNumber = 1, descriptionNumber = 1;
 //letter number combo
 let alertCell = "H5", randomOptionCell = "H6";
 let alertBool = true, randomOptionBool = false;
-let tagGap = 14;
+let tagGap = 14, tagRow = 4;
 
 //workaround to Authmode.NONE because publication requirements
 var sa = function() {return SpreadsheetApp.getActiveSpreadsheet();}
@@ -118,7 +118,7 @@ function update() {
   outline          = ss().getRange("D9").getBackground();
 
   //boolean settings
-  for(let i=0;i<formSettings.length;i++) formSettings[i][1] = ss().getRange("H"+(5+i)).getValue();
+  for(let i=0;i<formSettings.length;i++) formSettings[i][1] = ss().getRange("F"+(5+i)).getValue();
 
   //misc. settings
   alertBool        = ss().getRange(alertCell).getValue();
@@ -141,8 +141,8 @@ function update() {
     }
     //renaming tag names in normal sheets
     for(let i=0;i<tagLength;i++) {
-      let tagChar = char(7+(~~(i/5))*2);
-      ss().getRange(tagChar+(i%5+1)).setValue(tagNameArr[i]);
+      let tagChar = char(7+(~~(i/tagRow))*2);
+      ss().getRange(tagChar+(i%tagRow+1)).setValue(tagNameArr[i]);
     }
   }
   sa().setActiveSheet(sa().getSheetByName(sheetName));
@@ -224,7 +224,7 @@ function createSetting() {
 function createTemplate() {
   let x = data().length; //checker to see if data is valid is "out of bounds" for empty spreadsheet, but js is weird and I need use variable rather than data().length
   alertBool = sa().getSheetByName("Settings").getRange(alertCell).getValue();
-  if(alertBool && (x!=1) && (data()[0][1]!=="" || ss().getLastRow()>6) && data()[3][1]) { //have title? have info in the bottom?
+  if(alertBool && (x!=1) && (data()[0][1]!=="" || ss().getLastRow()>6)) { //have title? have info in the bottom?
     let response = UI.alert("Are you sure? (all information will be cleared)", UI.ButtonSet.YES_NO);
     if(response===UI.Button.NO) return;
   }
@@ -240,10 +240,10 @@ function createTemplate() {
   //info to fill in/use
   ss().getRange("A1").setValue("Form Title:");
   ss().getRange("A2").setValue("Form Desciption:");
-  ss().getRange("C1").setValue("Folder ID:");
-  ss().getRange("D1").setValue(folderID);
-  ss().getRange("C2").setValue("Public URL:");
-  ss().getRange("C3").setValue("Private URL:");
+  ss().getRange("E1").setValue("Folder ID:");
+  ss().getRange("F1").setValue(folderID);
+  ss().getRange("C1").setValue("Public URL:");
+  ss().getRange("C2").setValue("Private URL:");
 
   //header info
   ss().setRowHeight(headerSize, 50);
@@ -251,10 +251,10 @@ function createTemplate() {
     ss().getRange(header[i][0]+headerSize).setValue(header[i][1]);
   } ss().getRange(charOptionStart+headerSize+":"+charOptionEnd+headerSize).setValue("OPTION");
 
-  ss().getRange("E2").setValue("Number of questions from those tags you want to have->");
+  ss().getRange("E2").setValue("Values to the right of the tag names will be the number of problems with those tags on the Form");
   for(let i=0;i<tagLength;i++) {
-    let tagChar = char(7+(~~(i/5))*2);
-    ss().getRange(tagChar+(i%5+1)).setValue(tagNameArr[i]);
+    let tagChar = char(7+(~~(i/tagRow))*2);
+    ss().getRange(tagChar+(i%tagRow+1)).setValue(tagNameArr[i]);
   }
 
   //validations
@@ -287,8 +287,6 @@ function createTemplate() {
   
   //dunno how to categorize these
   setStrategy(headerSize+":"+headerSize, basicStyling);
-  // setStrategy("D1:D3", ["CLIP"]);
-  // setStrategy("B4:B5", basicStyling);
 
   //colors
   ss().getRange("A1:"+charEnd+desRow).setBackground(topBackground);
@@ -325,11 +323,12 @@ function createForm() {
   //setting form info to spreadsheet
   let publicUrl = form.getPublishedUrl();
   let privateUrl = form.getEditUrl();
-  ss().getRange("D2").setValue(publicUrl);
-  ss().getRange("D3").setValue(privateUrl);
+  ss().getRange("D1").setValue(publicUrl);
+  ss().getRange("D2").setValue(privateUrl);
 
   //moving form to the folder (if possible)
-  if(folderID!=='') file.moveTo(DriveApp.getFolderById(folderID));
+  if(ss().getRange("F1").getValue()!=='') file.moveTo(DriveApp.getFolderById(ss().getRange("F1").getValue()));
+  else if(folderID!=='') file.moveTo(DriveApp.getFolderById(folderID));
 
   //filling in form info
   file.setName(data()[0][titleNumber]);
@@ -338,7 +337,6 @@ function createForm() {
   form.setIsQuiz(true); //https://developers.google.com/apps-script/reference/forms/form#setisquizenabled
 
   // boolean info
-  correctColor = ss().getRange("B3").getBackground();
   for(let i=0;i<formSettings.length;i++) {
     if(formSettings[i][0]==="One Response per User?") form.setLimitOneResponsePerUser(formSettings[i][1]);
     if(formSettings[i][0]==="Can Edit Response?")     form.setAllowResponseEdits(formSettings[i][1]);
@@ -351,8 +349,9 @@ function createForm() {
   //tag questions
   let cntTag = [], tagRnd, tagArray = [];
   for(let i=0;i<tagLength;i++) {
-    cntTag.push(data()[i%5][tagStart+(~~(i/5)*2)]);
-    tagRnd = tagRnd || data()[i%5][tagStart+(~~(i/5)*2)]>0;
+    let tagIdx = 7+(~~(i/tagRow))*2;
+    cntTag.push(data()[i%tagRow][tagIdx])
+    tagRnd = tagRnd || data()[i%tagRow][tagIdx];
   }
 
   //adding questions to form
@@ -385,7 +384,6 @@ function createForm() {
     else if(x==="VIDEO") question = form.addVideoItem().setVideoUrl(data()[i][url-1]);
     setUpQuestion(i);
   }
-  // shuffle(arrRnd); 
   shuffle(tagArray);
   if(tagRnd) {
     for(let i=0;i<tagArray.length;i++) {
@@ -412,7 +410,7 @@ const mix = [IT.CHECKBOX, IT.MULTIPLE_CHOICE,
 ];
 const twoD = [IT.CHECKBOX_GRID, IT.GRID];
 function setUpQuestion(i) {
-  if(data()[i][titleNumber-1]       !=='') question.setTitle(data()[i][titleNumber-1]);
+  if(data()[i][1]       !=='') question.setTitle(data()[i][1]);
   if(data()[i][instructionsNumber-1]!=='') question.setHelpText(data()[i][instructionsNumber-1]);
   let type = question.getType();
   for (let j=0;j<visual.length;j++) { //Visuals (Image + Video)
@@ -470,7 +468,6 @@ function char(x) {
   return String.fromCharCode(64+x);
 }
 function findTagFromWord(x) {
-  update();
   for(let i=0;i<tagNameArr.length;i++) {
     if(tagNameArr[i]===x) return i;
   } return 314;
