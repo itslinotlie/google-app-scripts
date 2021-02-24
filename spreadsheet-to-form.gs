@@ -252,6 +252,7 @@ function createTemplate() {
   } ss().getRange(charOptionStart+headerSize+":"+charOptionEnd+headerSize).setValue("OPTION");
 
   ss().getRange("E2").setValue("Values to the right of the tag names will be the number of problems with those tags on the Form");
+  ss().getRange("E2:F2").merge();
   for(let i=0;i<tagLength;i++) {
     let tagChar = char(7+(~~(i/tagRow))*2);
     ss().getRange(tagChar+(i%tagRow+1)).setValue(tagNameArr[i]);
@@ -294,9 +295,11 @@ function createTemplate() {
   ss().getRange("A"+(headerSize+1)+":"+charEnd+desRow).setBackground(bottomBackground);
 
   //misc
+  setStrategy("D1:D2", ["CLIP"]); //clips public and private URL
+  setStrategy("F1", ["CLIP"]); //clips folder ID
   ss().setFrozenRows(headerSize); ss().setFrozenColumns(2);
-  // setFormat(["A1:A2", "C1:C3", "E1:E3", "G1:G3", headerSize+":"+headerSize], "bold");
-  // setFormat(["A1:A2", "C1:C3", headerSize+":"+headerSize], 12);
+  setFormat(["A1:A2", "C1:C3", "E1", headerSize+":"+headerSize], "bold");
+  setFormat(["A1:A2", "C1:C3", "E1", headerSize+":"+headerSize], 12);
   //top, left, bottom, right, vertical, horizontal, color, style)
   ss().getRange(headerSize+":"+headerSize).setBorder(true, false, true, false, false, false, outline, SA.BorderStyle.SOLID_MEDIUM);
 
