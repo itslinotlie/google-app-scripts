@@ -63,6 +63,8 @@ let tagGap = 14, tagRow = 4;
 var sa = function() {return SpreadsheetApp.getActiveSpreadsheet();}
 var ss = function() {return SpreadsheetApp.getActiveSpreadsheet().getActiveSheet()}
 var data = function() {return SpreadsheetApp.getActiveSpreadsheet().getActiveSheet().getDataRange().getValues()}
+var toastTitle = "Hello fellow human being";
+var toastMessage = "Remember to check the GitHub documentation or YouTube video for any help/clarifications. Have a good day :)";
 var question;
 
 var sheetName;
@@ -77,11 +79,10 @@ function onOpen(e) {
   menu.addItem("Initilize Spreadsheet", "createTemplate").addToUi();
   menu.addItem("Create Google Form", "createForm").addToUi();
   menu.addItem("Link to Documentation", "linkDoc").addToUi();
-  menu.addItem("Update Settings", "update").addToUi();
+  menu.addItem("Update Tag Naming", "update").addToUi();
   menu.addItem("Delete later", "createSetting").addToUi();
   alertBool = sa().getSheetByName("Settings").getRange(alertCell).getValue();
-  if(alertBool) //sometimes this gives errors (but code still runs), sometimes it doesn't /shrug
-    SA.getActiveSpreadsheet().toast("Remember to check the GitHub documentation or YouTube video for any help/clarifications. Have a good day :)", "Hello fellow human being");
+  if(alertBool) SA.getActiveSpreadsheet().toast(toastMessage, toastTitle);
   // keeping vvv iin case I do need the e.authMode and I forget that its a thing and end up on stackoverflow for hours
   // if(e.authMode !== ScriptApp.AuthMode.NONE && ss().getRange(alertCell).getValue()===true) //sometimes this gives errors (but code still runs), sometimes it doesn't /shrug
 }
@@ -91,7 +92,7 @@ function onEdit(e) { //alerts user if they checked GRID question type, the row b
   if(col!=="A" || row<=headerSize || !alertBool) return;
   if(ss().getRange(range).getValue()==="MCGRID" || ss().getRange(range).getValue()==="CHECKGRID") 
     UI.alert("Friendly Reminder", "Remember that the cell below "+range+" should be the columns for the "
-    +ss().getRange(range).getValue()+" and nothing else. You can turn alerts off by setting the B4 cell to FALSE", UI.ButtonSet.OK);
+    +ss().getRange(range).getValue()+" and nothing else. You can turn alerts in the Settings Sheet", UI.ButtonSet.OK);
 }
 
 //updates tagNames, updates Tag column validations
@@ -222,18 +223,24 @@ function createSetting() {
 
 //first menu item, creates template
 function createTemplate() {
+  //basic checkers
+  if(ss().getName()==="Settings") {
+    UI.alert("Friendly Reminder", "You cannot create a template for the Settings Sheet", UI.ButtonSet.OK);
+    return;
+  }
   let x = data().length; //checker to see if data is valid is "out of bounds" for empty spreadsheet, but js is weird and I need use variable rather than data().length
   alertBool = sa().getSheetByName("Settings").getRange(alertCell).getValue();
   if(alertBool && (x!=1) && (data()[0][1]!=="" || ss().getLastRow()>6)) { //have title? have info in the bottom?
     let response = UI.alert("Are you sure? (all information will be cleared)", UI.ButtonSet.YES_NO);
     if(response===UI.Button.NO) return;
   }
-  update();
 
+  update();
   resizeSheet(desRow, desCol);
 
   ss().clear(); //clears formatting
   ss().setRowHeights(1, desRow, 21); ss().setColumnWidths(1, desCol, 100); //resize cells to default cell size
+  ss().setRowHeights(1, headerSize, 25);
   ss().getRange(1, 1, desRow, desCol).setDataValidation(null); //clears data formatting so you dont need to create a new sheet
   while(ss().getImages().length>0) ss().getImages()[0].remove(); //removes all images in the sheet
 
@@ -285,9 +292,6 @@ function createTemplate() {
         header[i][1]==="Other?") setStrategy(x, basicStyling);
     if(header[i][1]==="URL / ID") setStrategy(x, ["CLIP"]);
   } 
-  
-  //dunno how to categorize these
-  setStrategy(headerSize+":"+headerSize, basicStyling);
 
   //colors
   ss().getRange("A1:"+charEnd+desRow).setBackground(topBackground);
@@ -295,18 +299,17 @@ function createTemplate() {
   ss().getRange("A"+(headerSize+1)+":"+charEnd+desRow).setBackground(bottomBackground);
 
   //misc
+  setStrategy(headerSize+":"+headerSize, basicStyling); //styling for OPTIONS
   setStrategy("D1:D2", ["CLIP"]); //clips public and private URL
   setStrategy("F1", ["CLIP"]); //clips folder ID
   ss().setFrozenRows(headerSize); ss().setFrozenColumns(2);
-  setFormat(["A1:A2", "C1:C3", "E1", headerSize+":"+headerSize], "bold");
-  setFormat(["A1:A2", "C1:C3", "E1", headerSize+":"+headerSize], 12);
+  setFormat(["A1:A2", "C1:C3", "E1", headerSize+":"+headerSize], ["bold", 12]);
   //top, left, bottom, right, vertical, horizontal, color, style)
   ss().getRange(headerSize+":"+headerSize).setBorder(true, false, true, false, false, false, outline, SA.BorderStyle.SOLID_MEDIUM);
 
   // happy message :)
   alertBool = sa().getSheetByName("Settings").getRange(alertCell).getValue();
-  if(alertBool)
-    SA.getActiveSpreadsheet().toast("Remember to check the GitHub documentation or YouTube video for any help/clarifications. Have a good day :)", "Hello fellow human being");
+  if(alertBool) SA.getActiveSpreadsheet().toast(toastMessage, toastTitle);
 }
 
 //second menu item, creates the form
@@ -315,8 +318,7 @@ function createForm() {
 
   //subtle plug (:
   alertBool = sa().getSheetByName("Settings").getRange(alertCell).getValue();
-  if(alertBool)
-    SA.getActiveSpreadsheet().toast("Remember to check the GitHub documentation or YouTube video for any help/clarifications. Have a good day :)", "Hello fellow human being");
+  if(alertBool) SA.getActiveSpreadsheet().toast(toastMessage, toastTitle);
   
   let row = ss().getDataRange().getNumRows();
   var form = FormApp.create("Untitled form"); //has to be initialized
@@ -497,8 +499,10 @@ function setValidation(range, list) {
 }
 function setFormat(range, type) {
   for (let i=0;i<range.length;i++) {
-    if(type==="bold") ss().getRange(range[i]).setFontWeight("bold");
-    else if(!isNaN(type)) ss().getRange(range[i]).setFontSize(type);
+    for (let j=0;j<type.length;j++) {
+      if(type[j]==="bold") ss().getRange(range[i]).setFontWeight("bold");
+      else if(!isNaN(type[j])) ss().getRange(range[i]).setFontSize(type[j]);
+    }
   }
 }
 function shuffle(arr) { //Fisher-Yates shuffle
