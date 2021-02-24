@@ -34,6 +34,14 @@ const options = [ //supported Form question types (not the actual naming GAS use
 const basicStyling = ["HCENTER", "VCENTER"]; //styling used for majority of the spreadsheet
 const bool = ["TRUE", "FALSE"];
 const tagNameArr = []; //tag names, default is Tag <Number>
+const formSettings = [
+  ["One Response per User?", false],
+  ["Can Edit Response?",     false],
+  ["Collects Email?",        false],
+  ["Progress Bar?",          false],
+  ["Link to Respond Again?", false],
+  ["Publishing Summary?",    false]
+]
 
 //abbreviations, I don't even know how this is legal, but it works
 let SA = SpreadsheetApp, UI = SA.getUi(), IT = FormApp.ItemType;
@@ -120,9 +128,12 @@ function update() {
   bottomBackground = ss().getRange("D8").getBackground();
   outline          = ss().getRange("D9").getBackground();
 
+  for(let i=0;i<formSettings.length;i++) formSettings[i][1] = ss().getRange("H"+(5+i)).getValue();
+
   sa().setActiveSheet(sa().getSheetByName(sheetName));
-  // //validation for the tag column
+  //validation for the tag column
   for (let i=0;i<sa().getSheets().length;i++) {
+    if(sa().getSheets()[i].getName()==="Settings") continue;
     sa().setActiveSheet(sa().getSheets()[i]);
     for (let j=0;j<header.length;j++) {
       if(header[j][1]==="Tag") setValidation(header[j][0]+(headerSize+1)+":"+header[j][0]+ss().getMaxRows(), tagNameArr);
@@ -144,20 +155,20 @@ function createSetting() {
   sheetName = ss().getName(); //used to get back the previous active sheet
 
   //temporarily just so I dont have to delte the settings sheet whenever I test stuff
-  // let newSheet = sa().getSheetByName("Settings");
-  // if(newSheet!==null) sa().deleteSheet(newSheet);
-  // newSheet = sa().insertSheet("Settings");
-  // sa().setActiveSheet(newSheet);
+  let newSheet = sa().getSheetByName("Settings");
+  if(newSheet!==null) sa().deleteSheet(newSheet);
+  newSheet = sa().insertSheet("Settings");
+  sa().setActiveSheet(newSheet);
 
   //IMPORTANT
   //need to make note that the changes will only be applied to new spreadsheets
 
-  let newSheet = sa().insertSheet("Settings"); //creates a new sheet called Settings
-  sa().setActiveSheet(newSheet); //newSheet is now the active spreadsheet
+  // let newSheet = sa().insertSheet("Settings"); //creates a new sheet called Settings
+  // sa().setActiveSheet(newSheet); //newSheet is now the active spreadsheet
 
   let settingRow = 9, settingCol = 11;
   resizeSheet(settingRow, settingCol);
-  ss().setRowHeights(1, settingRow, 25); ss().setColumnWidths(1, settingCol, 150); //resize cells to default cell size
+  ss().setRowHeights(1, settingRow, 25); ss().setColumnWidths(1, settingCol, 175);
   setStrategy("A1:"+char(settingRow)+settingCol, basicStyling);
 
   ss().getRange("A1").setValue("Global Settings for all your Sheets");
@@ -187,6 +198,13 @@ function createSetting() {
     //and would then create google form with 0 questions, so not sure what to do (could create a "filler variable" and check for that)
   }
 
+  ss().getRange("G3").setValue("Boolean Settings");
+  for(let i=0;i<formSettings.length;i++) {
+    ss().getRange("G"+(5+i)).setValue(formSettings[i][0]);
+    ss().getRange("H"+(5+i)).setValue(formSettings[i][1]);
+  } 
+  setStrategy("G5:G10", ["HLEFT"]);
+
   sa().setActiveSheet(sa().getSheetByName(sheetName)); //UI now refocuses back to the original spreadsheet
 }
 
@@ -198,8 +216,6 @@ function createTemplate() {
     if(response===UI.Button.NO) return;
   }
   update();
-  //if the settings sheet does not exist, create it
-  if(sa().getSheetByName("Settings")==null) createSetting();
 
   resizeSheet(desRow, desCol);
 
@@ -207,8 +223,6 @@ function createTemplate() {
   ss().setRowHeights(1, desRow, 21); ss().setColumnWidths(1, desCol, 100); //resize cells to default cell size
   ss().getRange(1, 1, desRow, desCol).setDataValidation(null); //clears data formatting so you dont need to create a new sheet
   while(ss().getImages().length>0) ss().getImages()[0].remove(); //removes all images in the sheet
-
-  ss().getRange("B2").setValue(desRow+" | "+desCol+" = "+optionLength);
 
   //info to fill in/use
   ss().getRange("A1").setValue("Form Title:");
@@ -222,31 +236,31 @@ function createTemplate() {
   ss().getRange("D1").setValue(folderID);
   ss().getRange("C2").setValue("Public URL:");
   ss().getRange("C3").setValue("Private URL:");
-  ss().getRange("C4").setValue("Random subset of questions based on category");
-  ss().getRange("C4:C5").merge(); setStrategy("C4", ["WRAP"]);
+  // ss().getRange("C4").setValue("Random subset of questions based on category");
+  // ss().getRange("C4:C5").merge(); setStrategy("C4", ["WRAP"]);
   // setupTag();
 
   //various boolean fields
-  ss().getRange("E1").setValue("One Response per User?");
-  ss().getRange("E2").setValue("Can Edit Response?");
-  ss().getRange("E3").setValue("Collects Email?");
-  setValidation("F1:F3", bool);
-  ss().getRange("G1").setValue("Progress Bar?");
-  ss().getRange("G2").setValue("Link to Respond Again?");
-  ss().getRange("G3").setValue("Publishing Summary?");
-  setValidation("H1:H3", bool);
+  // ss().getRange("E1").setValue("One Response per User?");
+  // ss().getRange("E2").setValue("Can Edit Response?");
+  // ss().getRange("E3").setValue("Collects Email?");
+  // setValidation("F1:F3", bool);
+  // ss().getRange("G1").setValue("Progress Bar?");
+  // ss().getRange("G2").setValue("Link to Respond Again?");
+  // ss().getRange("G3").setValue("Publishing Summary?");
+  // setValidation("H1:H3", bool);
 
   //random subset of questions
-  ss().getRange("E4").setValue("# of MC:");
-  ss().getRange("E5").setValue("# of SHORTANSWER:");
-  ss().getRange("G4").setValue("# of CHECKBOX:");
-  ss().getRange("G5").setValue("# of PARAGRAPH:");
+  // ss().getRange("E4").setValue("# of MC:");
+  // ss().getRange("E5").setValue("# of SHORTANSWER:");
+  // ss().getRange("G4").setValue("# of CHECKBOX:");
+  // ss().getRange("G5").setValue("# of PARAGRAPH:");
 
   //kinda related to ^^^
-  let src = UrlFetchApp.fetch("https://imgur.com/QSzRPRL.png").getContent();
-  ss().insertImage(Utilities.newBlob(src, "image/png", "aName"), 4, 4, 70, -2);
-  ss().getRange("D4:D5").merge();
-  setStrategy("F1:F5", basicStyling); setStrategy("H1:H5", basicStyling);
+  // let src = UrlFetchApp.fetch("https://imgur.com/QSzRPRL.png").getContent();
+  // ss().insertImage(Utilities.newBlob(src, "image/png", "aName"), 4, 4, 70, -2);
+  // ss().getRange("D4:D5").merge();
+  // setStrategy("F1:F5", basicStyling); setStrategy("H1:H5", basicStyling);
   
   //header info
   ss().setRowHeight(headerSize, 50);
@@ -308,6 +322,8 @@ function createTemplate() {
 
 //second menu item, creates the form
 function createForm() {
+  update();
+
   //subtle plug (:
   if(ss().getRange(alertCellValue).getValue()===true) //sometimes this gives errors (but code still runs), sometimes it doesn't /shrug
     SA.getActiveSpreadsheet().toast("Remember to check the GitHub documentation or YouTube video for any help/clarifications. Have a good day :)", "Hello fellow human being");
@@ -334,12 +350,14 @@ function createForm() {
 
   // boolean info
   correctColor = ss().getRange("B3").getBackground();
-  if(data()[0][5]!=='') form.setLimitOneResponsePerUser(data()[0][5]);
-  if(data()[1][5]!=='') form.setAllowResponseEdits(data()[1][5]);
-  if(data()[2][5]!=='') form.setCollectEmail(data()[2][5]); //reveals email address at the top of the form, allows you to send a copy to yourself at the bottom
-  if(data()[0][7]!=='') form.setProgressBar(data()[0][7]);
-  if(data()[1][7]!=='') form.setShowLinkToRespondAgain(data()[1][7]);
-  if(data()[2][7]!=='') form.setPublishingSummary(data()[2][7]); //reveals question distribution, but no answers
+  for(let i=0;i<formSettings.length;i++) {
+    if(formSettings[i][0]==="One Response per User?") form.setLimitOneResponsePerUser(formSettings[i][1]);
+    if(formSettings[i][0]==="Can Edit Response?")     form.setAllowResponseEdits(formSettings[i][1]);
+    if(formSettings[i][0]==="Collects Email?")        form.setCollectEmail(formSettings[i][1]); //reveals email address at the top of the form, allows you to send a copy to yourself at the bottom
+    if(formSettings[i][0]==="Progress Bar?")          form.setProgressBar(formSettings[i][1]);
+    if(formSettings[i][0]==="Link to Respond Again?") form.setShowLinkToRespondAgain(formSettings[i][1]);
+    if(formSettings[i][0]==="Publishing Summary?")    form.setPublishingSummary(formSettings[i][1]); //reveals question distribution, but no answers
+  }
 
   //tag questions
   let cntTag = [], tagRnd, tagArray = [];
@@ -349,12 +367,12 @@ function createForm() {
   }
 
   //random category of questions
-  let rnd, arrRnd = [], cntRnd = [0, 0, 0, 0]; //MC, CB, SA, PG respectively
-  if(data()[3][5]!=='') cntRnd[0] = data()[3][5];
-  if(data()[3][7]!=='') cntRnd[1] = data()[3][7];
-  if(data()[4][5]!=='') cntRnd[2] = data()[4][5];
-  if(data()[4][7]!=='') cntRnd[3] = data()[4][7];
-  for (let i=0;i<4;i++) rnd = rnd || cntRnd[i]>0;
+  // let rnd, arrRnd = [], cntRnd = [0, 0, 0, 0]; //MC, CB, SA, PG respectively
+  // if(data()[3][5]!=='') cntRnd[0] = data()[3][5];
+  // if(data()[3][7]!=='') cntRnd[1] = data()[3][7];
+  // if(data()[4][5]!=='') cntRnd[2] = data()[4][5];
+  // if(data()[4][7]!=='') cntRnd[3] = data()[4][7];
+  // for (let i=0;i<4;i++) rnd = rnd || cntRnd[i]>0;
 
   //adding questions to form
   for (let i=headerSize;i<row;i++) {
@@ -372,14 +390,14 @@ function createForm() {
       if(flag) tagArray.push(i);
       continue;
     }
-    else if(rnd) {
-      if(x==="MC" && cntRnd[0]>0
-        || x==="CHECKBOX" && cntRnd[1]>0
-        || x==="SHORTANSWER" && cntRnd[2]>0
-        || x==="PARAGRAPH" && cntRnd[3]>0
-      ) arrRnd.push(i);
-      continue;
-    }
+    // else if(rnd) {
+    //   if(x==="MC" && cntRnd[0]>0
+    //     || x==="CHECKBOX" && cntRnd[1]>0
+    //     || x==="SHORTANSWER" && cntRnd[2]>0
+    //     || x==="PARAGRAPH" && cntRnd[3]>0
+    //   ) arrRnd.push(i);
+    //   continue;
+    // }
     if(x==="MC") question = form.addMultipleChoiceItem();
     else if(x==="CHECKBOX") question = form.addCheckboxItem();
     else if(x==="MCGRID") question = form.addGridItem();  
@@ -394,7 +412,8 @@ function createForm() {
     else if(x==="VIDEO") question = form.addVideoItem().setVideoUrl(data()[i][url-1]);
     setUpQuestion(i);
   }
-  shuffle(arrRnd); shuffle(tagArray);
+  // shuffle(arrRnd); 
+  shuffle(tagArray);
   if(tagRnd) {
     for(let i=0;i<tagArray.length;i++) {
       let x = data()[tagArray[i]][tagNumber-1], idx = findTagFromWord(x), flag = true;
@@ -411,20 +430,21 @@ function createForm() {
         setUpQuestion(tagArray[i]);
       }
     }
-  } else if(rnd) {
-    for (let i=0;i<arrRnd.length;i++) {
-      let x = data()[arrRnd[i]][0], flag = true;
-      if(x==='') continue;
-      for (let j=0;j<cntRnd.length;j++) {
-        if(cntRnd[j]>0) flag = false;
-      } if(flag) break;
-      if(x==="MC"               && cntRnd[0]-->0) question = form.addMultipleChoiceItem();
-      else if(x==='CHECKBOX'    && cntRnd[1]-->0) question = form.addCheckboxItem();
-      else if(x==='SHORTANSWER' && cntRnd[2]-->0) question = form.addTextItem();
-      else if(x==='PARAGRAPH'   && cntRnd[3]-->0) question = form.addParagraphTextItem();
-      setUpQuestion(arrRnd[i]);
-    }
-  }
+  } 
+  // else if(rnd) {
+  //   for (let i=0;i<arrRnd.length;i++) {
+  //     let x = data()[arrRnd[i]][0], flag = true;
+  //     if(x==='') continue;
+  //     for (let j=0;j<cntRnd.length;j++) {
+  //       if(cntRnd[j]>0) flag = false;
+  //     } if(flag) break;
+  //     if(x==="MC"               && cntRnd[0]-->0) question = form.addMultipleChoiceItem();
+  //     else if(x==='CHECKBOX'    && cntRnd[1]-->0) question = form.addCheckboxItem();
+  //     else if(x==='SHORTANSWER' && cntRnd[2]-->0) question = form.addTextItem();
+  //     else if(x==='PARAGRAPH'   && cntRnd[3]-->0) question = form.addParagraphTextItem();
+  //     setUpQuestion(arrRnd[i]);
+  //   }
+  // }
 }
 const choices = [IT.CHECKBOX, IT.MULTIPLE_CHOICE, IT.LIST];
 const visual = [IT.IMAGE, IT.VIDEO];
