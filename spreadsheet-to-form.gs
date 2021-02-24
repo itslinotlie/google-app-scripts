@@ -55,8 +55,9 @@ let requiredNumber = find("Required?"), otherNumber = find("Other?"), instructio
 let titleNumber = 1, descriptionNumber = 1;
 
 //letter number combo
-let alertCell = "J5", randomOptionCell = "J6";
+let alertCell = "H5", randomOptionCell = "H6";
 let alertBool = true, randomOptionBool = false;
+let tagGap = 14;
 
 //workaround to Authmode.NONE because publication requirements
 var sa = function() {return SpreadsheetApp.getActiveSpreadsheet();}
@@ -101,12 +102,6 @@ function update() {
   if(sa().getSheetByName("Settings")==null) createSetting();
   sa().setActiveSheet(sa().getSheetByName("Settings")); //need to switch active sheet to settings to get the tag names
 
-  tagNameArr.length = 0; //dont know how to reset a js array, but heard this works
-  for(let i=0;i<tagLength;i++) {
-    var cl = char(5+(~~(i/5))); //some magical integer division from js
-    tagNameArr.push(ss().getRange(cl+(i%5+5)).getValue());
-  }
-
   //initial settings
   folderID     = ss().getRange("B5").getValue();
   optionLength = ss().getRange("B6").getValue(); optionEnd = optionStart+optionLength;
@@ -129,6 +124,13 @@ function update() {
   alertBool        = ss().getRange(alertCell).getValue();
   randomOptionBool = ss().getRange(randomOptionCell).getValue();
 
+  tagNameArr.length = 0; //dont know how to reset a js array, but heard this works
+  for(let i=0;i<tagLength;i++) {
+    var cl = char(5+(~~(i/5))); //some magical integer division from js
+    if(ss().getRange(cl+(i%5+tagGap)).getValue()==='') ss().getRange(cl+(i%5+tagGap)).setValue("Tag "+(i+1));
+    tagNameArr.push(ss().getRange(cl+(i%5+14)).getValue());
+  }
+
   //validation for the tag column
   sa().setActiveSheet(sa().getSheetByName(sheetName));
   for (let i=0;i<sa().getSheets().length;i++) {
@@ -137,17 +139,22 @@ function update() {
     for (let j=0;j<header.length;j++) {
       if(header[j][1]==="Tag") setValidation(header[j][0]+(headerSize+1)+":"+header[j][0]+ss().getMaxRows(), tagNameArr);
     }
+    //renaming tag names in normal sheets
+    for(let i=0;i<tagLength;i++) {
+      let tagChar = char(7+(~~(i/5))*2);
+      ss().getRange(tagChar+(i%5+1)).setValue(tagNameArr[i]);
+    }
   }
   sa().setActiveSheet(sa().getSheetByName(sheetName));
 }
 
 //adds/removes columns to match the desired size
-function resizeSheet(desRow, desCol) {
+function resizeSheet(rowWant, colWant) {
   let curRow = ss().getMaxRows(), curCol = ss().getMaxColumns();
-  if(curRow!==desRow) //Exception: Invalid argument is thrown if you .inserRowsAfter(X, 0)
-    curRow>desRow? ss().deleteRows(desRow+1, curRow-desRow):ss().insertRowsAfter(curRow-1, desRow-curRow);
-  if(curCol!==desCol)
-    curCol>desCol? ss().deleteColumns(desCol+1, curCol-desCol):ss().insertColumnsAfter(curCol-1, desCol-curCol);
+  if(curRow!==rowWant) //Exception: Invalid argument is thrown if you .inserRowsAfter(X, 0)
+    curRow>rowWant? ss().deleteRows(rowWant+1, curRow-rowWant):ss().insertRowsAfter(curRow-1, rowWant-curRow);
+  if(curCol!==colWant)
+    curCol>colWant? ss().deleteColumns(colWant+1, curCol-colWant):ss().insertColumnsAfter(curCol-1, colWant-curCol);
 }
 function createSetting() {
   sheetName = ss().getName(); //used to get back the previous active sheet
@@ -164,10 +171,11 @@ function createSetting() {
   // let newSheet = sa().insertSheet("Settings"); //creates a new sheet called Settings
   // sa().setActiveSheet(newSheet); //newSheet is now the active spreadsheet
 
-  let settingRow = 9, settingCol = 11;
+  let settingRow = 20, settingCol = 11;
   resizeSheet(settingRow, settingCol);
   ss().setRowHeights(1, settingRow, 25); ss().setColumnWidths(1, settingCol, 175);
-  setStrategy("A1:"+char(settingRow)+settingCol, basicStyling);
+  setStrategy("A1:"+char(settingCol)+settingRow, basicStyling);
+  setStrategy("A1:"+char(settingCol)+settingRow, ["WRAP"]);
 
   ss().getRange("A1").setValue("Global Settings for all your Sheets");
   
@@ -187,27 +195,27 @@ function createSetting() {
   ss().getRange("D5").setBorder(true, true, true, true, false, false, "#fbaed2", SA.BorderStyle.SOLID_THICK);
   for(let i=5;i<=9;i++) ss().getRange("D"+i).setBorder(true, true, true, true, false, false, "#fbaed2", SA.BorderStyle.SOLID_THICK); //range notation doesn't appear to work so for loop it is
 
-  ss().getRange("E3").setValue("Tag Naming");
+  ss().getRange("E12").setValue("Tag Naming");
   for(let i=0;i<tagLength;i++) {
     var cl = char(5+(~~(i/5))); //some magical integer division from js
     tagNameArr.push("Tag "+(i+1));
-    ss().getRange(cl+(i%5+5)).setValue(tagNameArr[i]); //default tag naming
+    ss().getRange(cl+(i%5+tagGap)).setValue(tagNameArr[i]); //default tag naming
     //if I were to insert a filler number (0) after Tag 1, then the checking algorithm would detect something
     //and would then create google form with 0 questions, so not sure what to do (could create a "filler variable" and check for that)
   }
 
-  ss().getRange("G3").setValue("Boolean Settings");
+  ss().getRange("E3").setValue("Boolean Settings");
   for(let i=0;i<formSettings.length;i++) {
-    ss().getRange("G"+(5+i)).setValue(formSettings[i][0]);
-    ss().getRange("H"+(5+i)).setValue(formSettings[i][1]);
-    setValidation("H"+(5+i), bool);
+    ss().getRange("E"+(5+i)).setValue(formSettings[i][0]);
+    ss().getRange("F"+(5+i)).setValue(formSettings[i][1]);
+    setValidation("F"+(5+i), bool);
   } 
-  setStrategy("G5:G10", ["HLEFT"]);
+  setStrategy("E5:E10", ["HLEFT"]);
 
-  ss().getRange("I3").setValue("Misc. Settings");
-  ss().getRange("I5").setValue("I Want Alerts");     ss().getRange("J5").setValue(alertBool);
-  ss().getRange("I6").setValue("Randomize OPTIONS"); ss().getRange("J6").setValue(randomOptionBool);
-  setValidation("J5:J6", bool);
+  ss().getRange("G3").setValue("Misc. Settings");
+  ss().getRange("G5").setValue("I Want Alerts");     ss().getRange("H5").setValue(alertBool);
+  ss().getRange("G6").setValue("Randomize OPTIONS"); ss().getRange("H6").setValue(randomOptionBool);
+  setValidation("H5:H6", bool);
 
   sa().setActiveSheet(sa().getSheetByName(sheetName)); //UI now refocuses back to the original spreadsheet
 }
