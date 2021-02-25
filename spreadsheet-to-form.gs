@@ -55,8 +55,8 @@ let requiredNumber = find("Required?"), otherNumber = find("Other?"), instructio
 let titleNumber = 1, descriptionNumber = 1;
 
 //letter number combo
-let alertCell = "H5", randomOptionCell = "H6";
-let alertBool = true, randomOptionBool = false;
+let alertCell = "H5", randomOptionCell = "H6", randomQuestionCell = "H7";
+let alertBool = true, randomOptionBool = false, randomQuestionBool = false;
 let tagGap = 14, tagRow = 4;
 
 //workaround to Authmode.NONE because publication requirements
@@ -78,10 +78,8 @@ function onOpen(e) {
   let menu = SpreadsheetApp.getUi().createAddonMenu(); //used with congunction with google marketplace
   menu.addItem("Initilize Spreadsheet", "createTemplate").addToUi();
   menu.addItem("Create Google Form", "createForm").addToUi();
+  menu.addItem("Update Tag Names", "update").addToUi();
   menu.addItem("Link to Documentation", "linkDoc").addToUi();
-  menu.addItem("Update Tag Naming", "update").addToUi();
-  menu.addItem("Delete later", "createSetting").addToUi();
-  alertBool = sa().getSheetByName("Settings").getRange(alertCell).getValue();
   if(alertBool) SA.getActiveSpreadsheet().toast(toastMessage, toastTitle);
   // keeping vvv iin case I do need the e.authMode and I forget that its a thing and end up on stackoverflow for hours
   // if(e.authMode !== ScriptApp.AuthMode.NONE && ss().getRange(alertCell).getValue()===true) //sometimes this gives errors (but code still runs), sometimes it doesn't /shrug
@@ -122,8 +120,9 @@ function update() {
   for(let i=0;i<formSettings.length;i++) formSettings[i][1] = ss().getRange("F"+(5+i)).getValue();
 
   //misc. settings
-  alertBool        = ss().getRange(alertCell).getValue();
-  randomOptionBool = ss().getRange(randomOptionCell).getValue();
+  alertBool          = ss().getRange(alertCell).getValue();
+  randomOptionBool   = ss().getRange(randomOptionCell).getValue();
+  randomQuestionBool = ss().getRange(randomQuestionCell).getValue();
 
   tagNameArr.length = 0; //dont know how to reset a js array, but heard this works
   for(let i=0;i<tagLength;i++) {
@@ -160,17 +159,8 @@ function resizeSheet(rowWant, colWant) {
 function createSetting() {
   sheetName = ss().getName(); //used to get back the previous active sheet
 
-  //temporarily just so I dont have to delte the settings sheet whenever I test stuff
-  let newSheet = sa().getSheetByName("Settings");
-  if(newSheet!==null) sa().deleteSheet(newSheet);
-  newSheet = sa().insertSheet("Settings");
-  sa().setActiveSheet(newSheet);
-
-  //IMPORTANT
-  //need to make note that the changes will only be applied to new spreadsheets
-
-  // let newSheet = sa().insertSheet("Settings"); //creates a new sheet called Settings
-  // sa().setActiveSheet(newSheet); //newSheet is now the active spreadsheet
+  let newSheet = sa().insertSheet("Settings"); //creates a new sheet called Settings
+  sa().setActiveSheet(newSheet); //newSheet is now the active spreadsheet
 
   let settingRow = 20, settingCol = 9;
   resizeSheet(settingRow, settingCol);
@@ -179,10 +169,10 @@ function createSetting() {
   setStrategy("A1:"+char(settingCol)+settingRow, basicStyling); //everything format
   setStrategy("A1:"+char(settingCol)+settingRow, ["WRAP"]);
   ss().getRange("A1:"+char(settingCol)+settingRow).setBackground(bottomBackground);
-  
   setFormat(["A1", "A3", "A11", "C3", "E3", "G3", "E12"], ["bold", 12]); //headers
   setStrategy("A1", ["HLEFT", "FLOW"]); //title
 
+  //text displayed to user
   ss().getRange("A1").setValue("The Global Settings for all your Sheets");
   
   ss().getRange("A3").setValue("Initial Settings");
@@ -216,19 +206,21 @@ function createSetting() {
   } setStrategy("E5:E10", ["HLEFT"]);
 
   ss().getRange("G3").setValue("Misc. Settings");
-  ss().getRange("G5").setValue("I Want Alerts");     ss().getRange("H5").setValue(alertBool);
-  ss().getRange("G6").setValue("Randomize OPTIONS"); ss().getRange("H6").setValue(randomOptionBool);
-  setValidation("H5:H6", bool);
+  ss().getRange("G5").setValue("I Want Alerts");       ss().getRange("H5").setValue(alertBool);
+  ss().getRange("G6").setValue("Randomize OPTIONS");   ss().getRange("H6").setValue(randomOptionBool);
+  ss().getRange("G7").setValue("Randomize QUESTIONS"); ss().getRange("H7").setValue(randomQuestionBool);
+  setValidation("H5:H7", bool);
 
   //info
   ss().getRange("A11").setValue("How to Use This Program"); setStrategy("A11", ["HLEFT", "FLOW"]); //title
-  ss().getRange("A13:C19").merge(); setStrategy("A13", ["HLEFT"]);
-  ss().getRange("A13").setValue("\tI will mention some things that could cause misconfusion below:\n\n"
-    + "\t1. Highlight the cell with the \"Correct Colour\" to mark that cell as the correct answer (see doc. for limitations)\n"
-    + "\t2. The Boolean Settings are options in the checkmark boxes in Form > Setting.\n"
-    + "\t3. You can change the Tag Names on the Settings sheet, just make sure to \"Update Settings\" in the menu bar\n"
-    + "\n\tFinal thoughts: I think the program is fairly intuitive, but explaining everything here "
-    + "would be slightly messy. Instead, click on the \"Link to Documentation\" in the menu bar for the full documentation.");
+  ss().getRange("A12:D19").merge(); setStrategy("A12", ["HLEFT"]);
+  ss().getRange("A12").setValue("\tI will mention some things that could cause misconfusion below:\n\n"
+    + "\t1. Changes made in the Settings Sheet will apply to only newly created Sheets/Templates. You DO NOT need to click anything to update the changes. Unless it's a tag name change. \n"
+    + "\t2. You can change the Tag Names on the Settings sheet, just make sure to \"Update Tag Names\" in the menu bar. The tag names in the header of templates will be updated, but not the question type tags.\n"
+    + "\t3. The Boolean Settings are options in the checkmark boxes in Form > Setting.\n"
+    + "\t4. If any problems/questions arise, click the \"Link to Documentation\" for clarification. If there are still problems, create an Issue on GitHub and I will take a look.\n"
+    + "\n\tFinal thoughts: I hope you enjoy your time using Sigma, the tool that helps (hopefully) streamline your form creations."
+    + " Clarification can be found at \"Link to Documentation\" in the menu bar for the full documentation.");
   sa().setActiveSheet(sa().getSheetByName(sheetName)); //UI now refocuses back to the original spreadsheet
 }
 
@@ -236,12 +228,12 @@ function createSetting() {
 function createTemplate() {
   //basic checkers
   if(ss().getName()==="Settings") {
-    UI.alert("Friendly Reminder", "You cannot create a template for the Settings Sheet", UI.ButtonSet.OK);
+    UI.alert("Friendly Reminder", "You cannot create a template from the Settings Sheet", UI.ButtonSet.OK);
     return;
   }
   let x = data().length; //checker to see if data is valid is "out of bounds" for empty spreadsheet, but js is weird and I need use variable rather than data().length
-  alertBool = sa().getSheetByName("Settings").getRange(alertCell).getValue();
-  if(alertBool && (x!=1) && (data()[0][1]!=="" || ss().getLastRow()>6)) { //have title? have info in the bottom?
+  if((sa().getSheetByName("Settings")!=null && (alertBool = sa().getSheetByName("Settings").getRange(alertCell).getValue())) 
+      && (x!=1) && (data()[0][1]!=="" || ss().getLastRow()>6)) { //have title? have info in the bottom?
     let response = UI.alert("Are you sure? (all information will be cleared)", UI.ButtonSet.YES_NO);
     if(response===UI.Button.NO) return;
   }
@@ -269,8 +261,8 @@ function createTemplate() {
     ss().getRange(header[i][0]+headerSize).setValue(header[i][1]);
   } ss().getRange(charOptionStart+headerSize+":"+charOptionEnd+headerSize).setValue("OPTION");
 
-  ss().getRange("E2").setValue("Values to the right of the tag names will be the number of problems with those tags on the Form");
-  ss().getRange("E2:F2").merge();
+  ss().getRange("E2").setValue("Values to the right of the tag names will be the number of problems with those tags on the Google Form");
+  ss().getRange("E2:E4").merge();
   for(let i=0;i<tagLength;i++) {
     let tagChar = char(7+(~~(i/tagRow))*2);
     ss().getRange(tagChar+(i%tagRow+1)).setValue(tagNameArr[i]);
@@ -315,6 +307,7 @@ function createTemplate() {
   setStrategy("F1", ["CLIP"]); //clips folder ID
   ss().setFrozenRows(headerSize); ss().setFrozenColumns(2);
   setFormat(["A1:A2", "C1:C3", "E1", headerSize+":"+headerSize], ["bold", 12]);
+  setStrategy("A"+(headerSize+1)+":A"+desRow, ["VCENTER"]);
   //top, left, bottom, right, vertical, horizontal, color, style)
   ss().getRange(headerSize+":"+headerSize).setBorder(true, false, true, false, false, false, outline, SA.BorderStyle.SOLID_MEDIUM);
 
@@ -325,6 +318,11 @@ function createTemplate() {
 
 //second menu item, creates the form
 function createForm() {
+  //basic checkers
+  if(ss().getName()==="Settings") {
+    UI.alert("Friendly Reminder", "You cannot create a Form from the Settings Sheet", UI.ButtonSet.OK);
+    return;
+  }
   update();
 
   //subtle plug (:
@@ -370,6 +368,9 @@ function createForm() {
     tagRnd = tagRnd || data()[i%tagRow][tagIdx];
   }
 
+  //randomize questions
+  let randomQuestionArray = [];
+
   //adding questions to form
   for (let i=headerSize;i<row;i++) {
     let x = data()[i][0]; 
@@ -385,22 +386,16 @@ function createForm() {
       }
       if(flag) tagArray.push(i);
       continue;
+    } else if (randomQuestionBool) {
+      randomQuestionArray.push(i);
+      continue;
     }
-    if(x==="MC") question = form.addMultipleChoiceItem();
-    else if(x==="CHECKBOX") question = form.addCheckboxItem();
-    else if(x==="MCGRID") question = form.addGridItem();  
-    else if(x==="CHECKGRID") question = form.addCheckboxGridItem();
-    else if(x==="SHORTANSWER") question = form.addTextItem();
-    else if(x==="PARAGRAPH") question = form.addParagraphTextItem();
-    else if(x==="DROPDOWN") question = form.addListItem();
-    else if(x==="PAGEBREAK") question = form.addPageBreakItem();
-    else if(x==="HEADER") question = form.addSectionHeaderItem(); //these are stackable, but don't look the greatest
-    else if(x==="IMAGE") question = form.addImageItem().setImage(UrlFetchApp.fetch(data()[i][url-1])); //imageItem's helptext dont show in Forms
-    else if(x==="IMAGE-DRIVE") question = form.addImageItem().setImage(DriveApp.getFileById(data()[i][url-1]));
-    else if(x==="VIDEO") question = form.addVideoItem().setVideoUrl(data()[i][url-1]);
+    addQuestion(i, x, form);
     setUpQuestion(i);
   }
-  shuffle(tagArray);
+  if(randomQuestionBool) {
+    shuffle(tagArray); shuffle(randomQuestionArray);
+  }
   if(tagRnd) {
     for(let i=0;i<tagArray.length;i++) {
       let x = data()[tagArray[i]][tagNumber-1], idx = findTagFromWord(x), flag = true;
@@ -417,6 +412,13 @@ function createForm() {
         setUpQuestion(tagArray[i]);
       }
     }
+  } else if(randomQuestionBool) {
+    for(let i=0;i<randomQuestionArray.length;i++) {
+      let x = data()[randomQuestionArray[i]][0];
+      if(x==='') continue;
+      addQuestion(randomQuestionArray[i], x, form);
+      setUpQuestion(randomQuestionArray[i]);
+    }
   } 
 }
 const choices = [IT.CHECKBOX, IT.MULTIPLE_CHOICE, IT.LIST];
@@ -425,6 +427,20 @@ const mix = [IT.CHECKBOX, IT.MULTIPLE_CHOICE,
   IT.PARAGRAPH_TEXT, IT.TEXT, IT.LIST,
 ];
 const twoD = [IT.CHECKBOX_GRID, IT.GRID];
+function addQuestion(i, x, form) {
+  if(x==="MC") question = form.addMultipleChoiceItem();
+  else if(x==="CHECKBOX") question = form.addCheckboxItem();
+  else if(x==="MCGRID") question = form.addGridItem();  
+  else if(x==="CHECKGRID") question = form.addCheckboxGridItem();
+  else if(x==="SHORTANSWER") question = form.addTextItem();
+  else if(x==="PARAGRAPH") question = form.addParagraphTextItem();
+  else if(x==="DROPDOWN") question = form.addListItem();
+  else if(x==="PAGEBREAK") question = form.addPageBreakItem();
+  else if(x==="HEADER") question = form.addSectionHeaderItem(); //these are stackable, but don't look the greatest
+  else if(x==="IMAGE") question = form.addImageItem().setImage(UrlFetchApp.fetch(data()[i][url-1])); //imageItem's helptext dont show in Forms
+  else if(x==="IMAGE-DRIVE") question = form.addImageItem().setImage(DriveApp.getFileById(data()[i][url-1]));
+  else if(x==="VIDEO") question = form.addVideoItem().setVideoUrl(data()[i][url-1]);
+}
 function setUpQuestion(i) {
   if(data()[i][1]       !=='') question.setTitle(data()[i][1]);
   if(data()[i][instructionsNumber-1]!=='') question.setHelpText(data()[i][instructionsNumber-1]);
@@ -461,7 +477,7 @@ function addOptions(i) {
     else arr.push(question.createChoice(data()[i][j], false));
   }
   if(arr.length===0) return;
-  randomOptionBool = sa().getSheetByName("Settings").getRange(randomOptionCell);
+  randomOptionBool = sa().getSheetByName("Settings").getRange(randomOptionCell).getValue();
   if(randomOptionBool) shuffle(arr);
   question.setChoices(arr);
 }
