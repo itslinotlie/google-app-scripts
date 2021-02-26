@@ -10,6 +10,7 @@ Creating large amounts of Google Forms can quickly become tedious—especially w
 - [Random Question Subset](#Random-Question-Subset)
 
 [FAQ](#FAQ)  
+- [Where are my Points?](#No-points?)
 - [Folder ID](#What-is-the-Folder-ID)
 - [Private vs Public URL](#-What-is-the-difference-between-private-and-public-URL)
 - [Highlight Color](#How-to-Highlight-the-Answer)
@@ -73,6 +74,10 @@ Authors Note:
 Have 20 questions stored but only want 5 on the quiz? If order and which questions are chosen aren't a priority, this is for you. Currently supporting multiple choice, checkbox, shortanswer, and paragraph question types, you are able to choose how many questions from each category you wish to include in the form. However, due to the randomness, all other question types will not appear on the Form.
 
 ## FAQ
+
+### No points?
+
+If you have added points to a problem, either by hand or via the global settings page, but don't see the point value through the private form, no worries. Most likely, you have not set the problem to Required? = true either by hand or via the global settings page. This is one of those rules where you figure out after 45 minutes of debugging... (tldr; a question needs to be set to required for it to have points, at least through google scripts)
 
 ### What is the Folder ID
 
