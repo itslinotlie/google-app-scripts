@@ -57,6 +57,8 @@ let titleNumber = 1, descriptionNumber = 1;
 //letter number combo
 let alertCell = "H5", randomOptionCell = "H6", randomQuestionCell = "H7";
 let alertBool = true, randomOptionBool = false, randomQuestionBool = false;
+let defaultPointsCell = "H9", defaultRequiredCell = "H8";
+let defaultPoints = 0, defaultRequired = false;
 let tagGap = 14, tagRow = 4;
 
 //workaround to Authmode.NONE because publication requirements
@@ -123,6 +125,8 @@ function update() {
   alertBool          = ss().getRange(alertCell).getValue();
   randomOptionBool   = ss().getRange(randomOptionCell).getValue();
   randomQuestionBool = ss().getRange(randomQuestionCell).getValue();
+  defaultRequired    = ss().getRange(defaultRequiredCell).getValue();
+  defaultPoints      = ss().getRange(defaultPointsCell).getValue();
 
   tagNameArr.length = 0; //dont know how to reset a js array, but heard this works
   for(let i=0;i<tagLength;i++) {
@@ -209,7 +213,9 @@ function createSetting() {
   ss().getRange("G5").setValue("I Want Alerts");       ss().getRange("H5").setValue(alertBool);
   ss().getRange("G6").setValue("Randomize OPTIONS");   ss().getRange("H6").setValue(randomOptionBool);
   ss().getRange("G7").setValue("Randomize QUESTIONS"); ss().getRange("H7").setValue(randomQuestionBool);
-  setValidation("H5:H7", bool);
+  ss().getRange("G8").setValue("Default Required");    ss().getRange("H8").setValue(defaultRequired);
+  ss().getRange("G9").setValue("Default Points");      ss().getRange("H9").setValue(defaultPoints);
+  setValidation("H5:H8", bool);
 
   //info
   ss().getRange("A11").setValue("How to Use This Program"); setStrategy("A11", ["HLEFT", "FLOW"]); //title
@@ -457,15 +463,16 @@ function setUpQuestion(i) {
     }
   }
   for (let j=0;j<mix.length;j++) { //Adding points + setting required
-    if(type===mix[j]) {
-      if(data()[i][pointsNumber-1]  !=='') question.setPoints(data()[i][pointsNumber-1]);
-      if(data()[i][requiredNumber-1]!=='') question.setRequired(data()[i][requiredNumber-1]);
-    }
+    if(type===mix[j]) question.setPoints(data()[i][pointsNumber-1]);
+    else question.setPoints(defaultPoints);
+    if(data()[i][requiredNumber-1]!=='') question.setRequired(data()[i][requiredNumber-1]);
+    else question.setPoints(defaultRequired);
   }
   for (let j=0;j<twoD.length;j++) {
     if(type===twoD[j]) {
       addGrid(i);
       if(data()[i][requiredNumber-1]!=='') question.setRequired(data()[i][requiredNumber-1]);
+      else question.setRequired(defaultRequired);
     }
   }
 }
