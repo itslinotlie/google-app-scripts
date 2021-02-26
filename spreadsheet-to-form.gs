@@ -221,12 +221,11 @@ function createSetting() {
   ss().getRange("A11").setValue("How to Use This Program"); setStrategy("A11", ["HLEFT", "FLOW"]); //title
   ss().getRange("A12:D19").merge(); setStrategy("A12", ["HLEFT"]);
   ss().getRange("A12").setValue("\tI will mention some things that could cause misconfusion below:\n\n"
-    + "\t1. Changes made in the Settings Sheet will apply to only newly created Sheets/Templates. You DO NOT need to click anything to update the changes. Unless it's a tag name change. \n"
+    + "\t1. Changes made in the Settings Sheet will apply to only newly created Sheets/Templates. You DO NOT need to click anything to update the changes. Unless it's a tag name change, then see below vvv \n"
     + "\t2. You can change the Tag Names on the Settings sheet, just make sure to \"Update Tag Names\" in the menu bar. The tag names in the header of templates will be updated, but not the question type tags.\n"
-    + "\t3. The Boolean Settings are options in the checkmark boxes in Form > Setting.\n"
+    + "\t3. For a question to have points, it needs to be required, aka required? = true. \n"
     + "\t4. If any problems/questions arise, click the \"Link to Documentation\" for clarification. If there are still problems, create an Issue on GitHub and I will take a look.\n"
-    + "\n\tFinal thoughts: I hope you enjoy your time using Sigma, the tool that helps (hopefully) streamline your form creations."
-    + " Clarification can be found at \"Link to Documentation\" in the menu bar for the full documentation.");
+    + "\n\tFinal thoughts: I hope you enjoy your time using Sigma, the tool that helps (hopefully) streamline your form creations.");
   sa().setActiveSheet(sa().getSheetByName(sheetName)); //UI now refocuses back to the original spreadsheet
 }
 
@@ -463,10 +462,12 @@ function setUpQuestion(i) {
     }
   }
   for (let j=0;j<mix.length;j++) { //Adding points + setting required
-    if(type===mix[j]) question.setPoints(data()[i][pointsNumber-1]);
-    else question.setPoints(defaultPoints);
-    if(data()[i][requiredNumber-1]!=='') question.setRequired(data()[i][requiredNumber-1]);
-    else question.setPoints(defaultRequired);
+    if(type===mix[j]) {
+      if(data()[i][pointsNumber-1]  !=='') question.setPoints(data()[i][pointsNumber-1]);
+      else question.setPoints(defaultPoints);
+      if(data()[i][requiredNumber-1]!=='') question.setRequired(data()[i][requiredNumber-1]);
+      else question.setRequired(defaultRequired);
+    }
   }
   for (let j=0;j<twoD.length;j++) {
     if(type===twoD[j]) {
