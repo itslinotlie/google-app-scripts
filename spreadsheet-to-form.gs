@@ -183,8 +183,8 @@ function createSetting() {
   ss().getRange("A5").setValue("Folder ID");
   ss().getRange("A6").setValue("Option Length");     ss().getRange("B6").setValue(optionLength);
   ss().getRange("A7").setValue("Tag Amount");        ss().getRange("B7").setValue(tagLength);
-  ss().getRange("A8").setValue("Initial Sheet Row Height"); ss().getRange("B8").setValue(desRow);
-  ss().getRange("A9").setValue("Initial Sheet Col Width"); ss().getRange("B9").setValue(desCol);
+  ss().getRange("A8").setValue("# of Sheet Rows"); ss().getRange("B8").setValue(desRow);
+  ss().getRange("A9").setValue("# of Sheet Columns"); ss().getRange("B9").setValue(desCol);
 
   ss().getRange("C3").setValue("Colour Settings");   
   ss().getRange("C5").setValue("Correct Colour");    ss().getRange("D5").setBackground(correctColor);
@@ -463,10 +463,10 @@ function setUpQuestion(i) {
   }
   for (let j=0;j<mix.length;j++) { //Adding points + setting required
     if(type===mix[j]) {
-      if(data()[i][pointsNumber-1]  !=='') question.setPoints(data()[i][pointsNumber-1]);
-      else question.setPoints(defaultPoints);
       if(data()[i][requiredNumber-1]!=='') question.setRequired(data()[i][requiredNumber-1]);
       else question.setRequired(defaultRequired);
+      if(data()[i][pointsNumber-1]  !=='') question.setPoints(data()[i][pointsNumber-1]);
+      else if(defaultPoints!=0) question.setPoints(defaultPoints);
     }
   }
   for (let j=0;j<twoD.length;j++) {
