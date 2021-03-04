@@ -4,12 +4,15 @@ Creating large amounts of Google Forms can quickly become tedious—especially w
 
 ---
 
+### Table of Contents
+
 [Spreadsheet Components](#Spreadsheet-components)
 - [Types of Problems](#Types-of-Problems)
 - [True/False Fields](#True/False-Fields)
-- [Random Question Subset](#Random-Question-Subset)
+- [Global Setting Sheet](#Global-Setting)
 
 [FAQ](#FAQ)  
+<!-- What are tags -->
 - [Where are my Points?](#No-points?)
 - [Folder ID](#What-is-the-Folder-ID)
 - [Private vs Public URL](#-What-is-the-difference-between-private-and-public-URL)
@@ -69,9 +72,13 @@ Authors Note:
 | Link to Respond Again<br>(False) | <img src="https://imgur.com/mRTH1od.png" alt="One Response SS" height=75%> |
 | Publishinng Summary<br>(True) | <img src="https://imgur.com/yEhXXyp.png" alt="One Response SS" height=75%> |
 
-### Random Question Subset
+### Global Setting
 
-Have 20 questions stored but only want 5 on the quiz? If order and which questions are chosen aren't a priority, this is for you. Currently supporting multiple choice, checkbox, shortanswer, and paragraph question types, you are able to choose how many questions from each category you wish to include in the form. However, due to the randomness, all other question types will not appear on the Form.
+Having recieved feedback from users of the program, I realized that many components of the program was redundant. This included copying/pasting "1" for points and "true" for required? for every question, pasting the folder ID for every sheet, and copying the same boolean fields for every new sheet. There were also concerns about the inflexibility of the program, such as the need for more than 5 options or wanting to categorize questions to create quizzes based on those tags (rather than just based on question type). The solution? The global settings page.
+
+<img src="https://imgur.com/3UGyYaY.png">
+
+Gone are the days of going through the codebase to change variables or copying/pasting redundant information. The newly designed (although not refined) global setting sheet aims to solve this. There are quality of life changes, such as the amount of inital sheet rows/columns when sheets are initialized or having a global folder ID (which can be overrided if a different folder ID is given in a sheet). There are also options to make the program more flexible, such as the amount of options for Sheets or the ability to categorize questions by whatever you want to name it. The default naming is tag #, but this can be changed to anything (i.e. Knowledge, Thinking, Communication, Application, Unit 2 MC, etc.). If you are feeling frisky, you can also change the default colour scheme of the project. Essentially, the program just became a lot more flexible. By changing the values on the global settings page, all Forms that will be created will follow the settins, unless specifically overrided on the Sheets page (if possible). Thanks to the 10x in pay, this feature was achieved in only a weeks time (:
 
 ## FAQ
 
@@ -188,6 +195,8 @@ Some people, myself included, work better when there are examples to reference o
 
 An archive of the previous code versions
 
+## 2020:
+
 ### Aug 25
 <img src="https://imgur.com/GGJjCzs.png">
 - Mimicked basic functions of Forms
@@ -207,3 +216,11 @@ An archive of the previous code versions
 ### Oct 9
 <img src="https://imgur.com/92dmpeb.png">
 - Reorganize header locations
+
+## 2021:
+
+### Feb 25
+<img src="https://imgur.com/z2XDVUO.png">
+- Addition of Tags that allow for more customizibility
+<img src="https://imgur.com/FVVgSrT.png">
+- Creation of the global settings page, making the program even more flexible
