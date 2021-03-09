@@ -12,18 +12,18 @@ Sigma, the free, intuitive, and visually pleasing Spreadsheet add-on you never k
 
 [Spreadsheet Components](#Spreadsheet-components)
 - [Types of Questions](#Types-of-Questions)
-- [True/False Fields](#True/False-Fields)
+- [True/False Fields](#True-or-False-Fields)
 - [Global Setting Sheet](#Global-Setting)
 
 [FAQ](#FAQ)  
 <!-- What are tags -->
-- [Where are my Points?](#No-points?)
-- [Folder ID](#What-is-the-Folder-ID)
-- [Private vs Public URL](#-What-is-the-difference-between-private-and-public-URL)
-- [Highlight Color](#How-to-Highlight-the-Answer)
-- [Fill in Everything?](#Do-I-have-to-completely-fill-in-the-Form)
+- [Where are my points?](#No-points)
+- [What is a folder ID](#What-is-the-Folder-ID)
+- [Difference between private vs public URL](#-What-is-the-difference-between-private-and-public-URL)
+- [How to mark an option as correct?](#How-to-Highlight-the-Answer)
+- [Do I have to fill in everything?](#Do-I-have-to-completely-fill-in-the-Form)
 
-[Drawbacks of the Program](#Drawbacks-and-how-to-overcome-them)
+[Limitations of the Program](#Limitations-and-how-to-overcome-them)
 - [Release Marks](#Releasing-marks-immediately-after-submission)
 - [Reveal Additiaonal Form Info](#Revealinng-additional-Form-info)
 - [Short Public URLs](#Short-Public-URLs)
@@ -31,12 +31,6 @@ Sigma, the free, intuitive, and visually pleasing Spreadsheet add-on you never k
 - [GRID Items and Points](#Grid-no-Points)
 - [Answers for Text Responses](#Answers-for-Text-Responses)
 - [File Uploads](#File-Uploads)
-
-[Editing the Code](#Editing-the-Code)
-- [Hard-coding Folder ID](#Hard-coding-the-Folder-ID)
-- [Changing Highlight Color](#Changing-the-Default-Highlight-Color)
-- [Adding/Removing OPTIONS](#Adding/Removing-OPTIONS)
-- [Editing Spreadsheet Dimensions](#Editing-Spreadsheet-Dimensions)
 
 [Spreadsheet References](#Spreadsheet-References)
 
@@ -66,7 +60,7 @@ Sigma, the free, intuitive, and visually pleasing Spreadsheet add-on you never k
 Authors Note:
 *The row with the "GRID" item will become the rows in the GRID. The row below the "GRID" item will become the columns of the GRID.
 
-### True/False Fields
+### True or False Fields
 
 | Boolean Fields<br>(as shown in the Spreadsheet) | Explanation + Annotated Photo |
 |:-:|:-:|
@@ -89,7 +83,7 @@ Gone are the days of going through the codebase to change variables or copying/p
 
 ## FAQ
 
-### No points?
+### No points
 
 If you have added points to a problem, either by hand or via the global settings page, but don't see the point value through the private form, no worries. Most likely, you have not set the problem to Required? = true either by hand or via the global settings page. This is one of those rules that you figure out after 45 minutes of debugging... (tldr; a question needs to be set to required for it to have points, at least through google scripts)
 
@@ -111,7 +105,7 @@ To tell the Form which questions are correct (in MC and CHECKBOX), you need to h
 
 No. The Spreadsheet is created so that it still runs even if the input is incomplete. This means that your multiple choice question will still appear, even if you forgot to give it a title. Likewise, this also means that some features available in Forms (which may not be supported in the code) won't be added to the Form, such as having a "correct answer" for text responses. (see below for alternative solutions).
 
-## Drawbacks and how to overcome them
+## Limitations and how to overcome them
 
 These are "drawbacks" that I have not been able to find a clean solution to with Google Scripts. If you by any chance have a cleaner solution, create a Pull Request and I will happily look at your solution :)
 
