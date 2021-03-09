@@ -79,17 +79,19 @@ Authors Note:
 
 ### Global Setting
 
-Having recieved feedback from users of the program, I realized that many components of the program was redundant. This included copying/pasting "1" for points and "true" for required? for every question, pasting the folder ID for every sheet, and copying the same boolean fields for every new sheet. There were also concerns about the inflexibility of the program, such as the need for more than 5 options or wanting to categorize questions to create quizzes based on those tags (rather than just based on question type). The solution? The global settings page.
+Having recieved feedback from users of the program, I realized that many components of the program were redundant. This included copying/pasting "1" for points and "true" for required? for every question, pasting the folder ID into every sheet, and copying the same boolean fields for every new sheet. There were also concerns about the inflexibility of the program, such as the need for more than 5 options or wanting to categorize questions to create quizzes based on those tags (rather than just based on question type). The solution? The global settings page.
 
 <img src="https://imgur.com/3UGyYaY.png">
 
-Gone are the days of going through the codebase to change variables or copying/pasting redundant information. The newly designed (although not refined) global setting sheet aims to solve this. There are quality of life changes, such as the amount of inital sheet rows/columns when sheets are initialized or having a global folder ID (which can be overrided if a different folder ID is given in a sheet). There are also options to make the program more flexible, such as the amount of options for Sheets or the ability to categorize questions by whatever you want to name it. The default naming is tag #, but this can be changed to anything (i.e. Knowledge, Thinking, Communication, Application, Unit 2 MC, etc.). If you are feeling frisky, you can also change the default colour scheme of the project. Essentially, the program just became a lot more flexible. By changing the values on the global settings page, all Forms that will be created will follow the settins, unless specifically overrided on the Sheets page (if possible). Thanks to the 10x in pay, this feature was achieved in only a weeks time (:
+###### The latest version may differ, but the essential components are here
+
+Gone are the days of going through the codebase to change variables or copying/pasting redundant information. The newly designed (although not refined) global setting sheet aims to solve this problem. There are quality of life changes, such as the ability to change the amount of inital rows/columns when Sheets are initialized or having a global folder ID (which can be overrided if a different folder ID is given in a local Sheet). There are also options to make the program more flexible, such as changing the amount of options in a Sheet or the ability to categorize questions with tags. The default naming is tag #, but this can be changed to anything (i.e. Knowledge, Thinking, Communication, Application, Unit 2 MC, etc.) and you can then choose a random number of these question-tags in the Sheet (i.e. I want 5 Knowledge, 2 Thinking, 1 Communication). If you are feeling frisky, you can also change the default colour scheme of the project. Essentially, the program just became a lot more flexible. By changing the values on the global settings page, all future Forms and Sheets will contain the same settings (unless specifically ocerrided on the local Sheets page). The only exception is the tag names: if you want to immediately update the tag names on Sheets, you need to press Add-Ons > Sigma > Update Tag Names, which will update ALL the Sheets with the new set of Tag Names given on the Global Settings Sheet. Thanks to a 10x bonus and payraise, this feature was achieved in only a weeks time (:
 
 ## FAQ
 
 ### No points?
 
-If you have added points to a problem, either by hand or via the global settings page, but don't see the point value through the private form, no worries. Most likely, you have not set the problem to Required? = true either by hand or via the global settings page. This is one of those rules where you figure out after 45 minutes of debugging... (tldr; a question needs to be set to required for it to have points, at least through google scripts)
+If you have added points to a problem, either by hand or via the global settings page, but don't see the point value through the private form, no worries. Most likely, you have not set the problem to Required? = true either by hand or via the global settings page. This is one of those rules that you figure out after 45 minutes of debugging... (tldr; a question needs to be set to required for it to have points, at least through google scripts)
 
 ### What is the Folder ID
 
@@ -103,15 +105,15 @@ The public URL is the version you would send others to take your Form, while the
 
 ### How to Highlight the Answer
 
-To tell the Form which questions are correct (in MC and CHECKBOX), you need to highlight the appropriate cells with the highlight color. Whatever color is beside the "highlight cell" will be the color the form looks for in determining the correct answer. On the current version, this is the green shade in the custom color section. If this disgusts you, this is changeable in [#Changing the Highlight Color](#Changing-the-Default-Highlight-Color)
+To tell the Form which questions are correct (in MC and CHECKBOX), you need to highlight the appropriate cells with the highlight color. Whatever color is beside the "highlight cell" will be the color the form looks for in determining the correct answer. On the current version, this is the green shade in the custom color section. 
 
 ### Do I have to completely fill in the Form
 
-No. The Spreadsheet is created so that it still runs even if the input is incomplete. This means that your multiple choice question will still appear, even if you forgot to give it a title. Likewise, this also means that some features available in Forms (which may not be supported in the code) won't be added to the Form, such as having a "correct answer" for text responses (see below for alternative solutions).
+No. The Spreadsheet is created so that it still runs even if the input is incomplete. This means that your multiple choice question will still appear, even if you forgot to give it a title. Likewise, this also means that some features available in Forms (which may not be supported in the code) won't be added to the Form, such as having a "correct answer" for text responses. (see below for alternative solutions).
 
 ## Drawbacks and how to overcome them
 
-These are "drawbacks" that I have not been able to find a clean solution to with GAS. If you by any chance have a cleaner solution, create a MR and I will happily look at your solution :)
+These are "drawbacks" that I have not been able to find a clean solution to with Google Scripts. If you by any chance have a cleaner solution, create a Pull Request and I will happily look at your solution :)
 
 <img src="https://imgur.com/N9WL7BA.png" alt="Setting annnotation" height=20%>
 
@@ -153,46 +155,13 @@ Yes Google. Give developers the option to add points to text responses, but not 
 
 More labor work :sigh:
 
-## Editing the Code
-
-The code works, but it's not perfect. There are some changes and quality of life improvements that can only be made be tweaking the code, which will be discussed here. To simplify this process, even for those who haven't touched code, there will be annonations of screenshots, along with the respective code line. Since the code is constantly being improved from feedback and suggestions, the given line numbers may not be exact. However, there will be always be a symbol signifiying that the below line can be changed. Occasionally, the line of code will be commented out, so remove the "//" and adjust the line accordingly. The annotations of the screenshots are created so that only the values underlined should be changed.
-
-~~~
-The Symbol:
-// \o> Edit Me <o/
-~~~
-
-### Hard-coding the Folder ID
-
-<img src="https://imgur.com/JV0PgET.jpg">
-
-If you're tired of constantly pasting the folder ID, but you don't switch folders frequently, you can hardcode the folder ID into the code. This means that whenever you initilize the Spreadsheet, the folder ID will always be there. Simply remove the // and replace the characters inside the " " with your respective folder ID.
-
-### Changing the Default Highlight Color
-
-<img src="https://imgur.com/c5FPHZn.png">
-
-If you're on an eariler version of the code, your highlight color may be different from the current color. If apperances aren't a priority, you can change the default version of the highlight color to whatever hex color you wish (past neon green was #00ff00).
-
-### Adding/Removing OPTIONS
-
-<img src="https://imgur.com/NXOTXU2.jpg">
-
-The Spreadsheet supports up to 10 options for multiple choice and checkbox, but this value is completely changeable. Adjust the optionLength variable accordingly for the desired number of options. Remember to take into account that if you increase the optionLength, desCol should change as well to accomdate for the extra cells.
-
-### Editing Spreadsheet Dimensions
-
-<img src="https://imgur.com/QB0e5FP.jpg">
-
-Changing the amount of columnns was discussed eariler, but it is also possible to change the amount of rows. If the default 20 rows isn't enough, change it :)
-
 ## Spreadsheet References
 
 Some people, myself included, work better when there are examples to reference off of. Below will be two Spreadsheet share links: a Spreadsheet with multiple examples and a blank Spreadsheet in case something went wrong during the setup process.
 
 - [Demo copy (still in the making)]()
-- [Blank copy](https://docs.google.com/spreadsheets/d/1CbOZv0XPEX0BgJ7VU-Pus2foK_cB9N3AiIAxhvqOi38/edit?usp=sharing)
-- [Link to Youtube Video(still in the making)]()
+- [Blank copy](https://docs.google.com/spreadsheets/d/18FZQge1-DjQeCLcXcRiTwi97wru96TJcnP1--vU1RJ8/edit?usp=sharing)
+- [Link to Youtube Video (still in the making)]()
 
 ---
 
