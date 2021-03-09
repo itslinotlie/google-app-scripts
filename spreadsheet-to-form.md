@@ -1,13 +1,17 @@
-# Automate the Creation of Forms with Spreadsheet
+# Automate the Creation of Forms with Sigma
 
-Creating large amounts of Google Forms can quickly become tedious—especially without the ability of copy-paste. With an intuitive Spreadsheet design and support for various question formats, such as multiple choice and text responses, the process of creating quizzes just became streamlined.
+<p align="center"><img src="https://imgur.com/YycSAYQ.png" alt="Screenshot of the Sigma add-on"></p>
+
+###### Publishing an application was not easy...
+
+Sigma, the free, intuitive, and visually pleasing Spreadsheet add-on you never knew you needed. Ditch the manual creation of Google Forms with a streamlined experience that automates the tedious work. Combined with a thorough documentation and active support team, help is just around the corner.
 
 ---
 
 ### Table of Contents
 
 [Spreadsheet Components](#Spreadsheet-components)
-- [Types of Problems](#Types-of-Problems)
+- [Types of Questions](#Types-of-Questions)
 - [True/False Fields](#True/False-Fields)
 - [Global Setting Sheet](#Global-Setting)
 
@@ -42,17 +46,18 @@ Creating large amounts of Google Forms can quickly become tedious—especially w
 
 ## Spreadsheet Components
 
-### Types of Problems
+### Types of Questions
 
 | Question Types<br>(as shown in the Spreadsheet) | Explanation + Annotated Photo |
 |:-:|:-:|
 | MC | Multiple choice with only one option to choose from. The highlighted cell in the Spreadsheet will be the correct answer<br><img src="https://imgur.com/cXtwK86.jpg" alt="MC Screenshot" height=75%>|
 | CHECKBOX | Multiple choice with multiple options to choose from. The highlighted cell(s) in the Spreadsheet will be the correct answer (must be chosen simultanneously for points)<br><img src="https://imgur.com/MWPW1Pm.jpg" alt="CHECKBOX Screenshot" height=75%> |
-| MCGRID* | The 2-dimensional version of MC.<br><img src="https://imgur.com/1LASfKi.jpg" alt="MCGRID Screenshot" height=75%> |
-| CHECKGRID* | The 2-diemnsional version of CHECKBOX.<br><img src="https://imgur.com/m1omhPx.jpg" alt="CHECKGRID Screenshot" height=75%> |
+| MCGRID* | The 2-dimensional version of MC<br><img src="https://imgur.com/1LASfKi.jpg" alt="MCGRID Screenshot" height=75%> |
+| CHECKGRID* | The 2-dimensional version of CHECKBOX<br><img src="https://imgur.com/m1omhPx.jpg" alt="CHECKGRID Screenshot" height=75%> |
 | SHORTANSWER | Single-line text response<br><img src="https://imgur.com/CervVug.jpg" alt="SHORTANSWER Screenshot" height=75%> |
 | PARAGRAPH | Multi-line text response<br><img src="https://imgur.com/EmsrPKO.jpg" alt="PARAGRAPH Screenshot" height=75%> |
 | DROPDOWN | Similiar to CHECKBOX, but you only need to pick one correct answer for points<br><img src="https://imgur.com/WGvHZAs.jpg" alt="MC Screenshot" height=75%> |
+| PAGEBREAK | Creates a new page<br><img src="https://imgur.com/dqSL2F2.png" alt="PAGEBREAK Screenshot" width="90%">|
 | HEADER | Extra info that can be included anywhere in the Form<br><img src="https://imgur.com/RmCzgic.jpg" alt="HEADER Screenshot" height=75%> |
 | IMAGE | Image from a URL (needs to have an image extension at the end)<br><img src="https://imgur.com/fpDJ5jB.jpg" alt="IMAGE Screenshot" height=75%> |
 | IMAGE-DRIVE | Image from Google Drive (based on a String of text)<br><img src="https://imgur.com/iX3wxD6.jpg" alt="IMAGE-DRIVE Screenshot" height=75%> |
