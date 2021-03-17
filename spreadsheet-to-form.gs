@@ -18,14 +18,14 @@ const header = [ //cell-letter, header-name, col (1-indexed), width respectively
   ["A", "Question Type",                1, 150], 
   ["B", "Question",                     2, 200],
   // <option(s)> in between ^^ and vv
-  [char(optionEnd+1), "Points",         optionEnd+1],
-  [char(optionEnd+2), "Tag",            optionEnd+2],
-  [char(optionEnd+3), "Required?",      optionEnd+3],
-  [char(optionEnd+4), "Other?",         optionEnd+4],
-  [char(optionEnd+5), "Instructions",   optionEnd+5, 200],
-  [char(optionEnd+6), "Correct Text",   optionEnd+6, 200],
-  [char(optionEnd+7), "Incorrect Text", optionEnd+7, 200],
-  [char(optionEnd+8), "URL / ID",       optionEnd+8]
+  [char(optionEnd+1), "Points",         1],
+  [char(optionEnd+2), "Tag",            2],
+  [char(optionEnd+3), "Required?",      3],
+  [char(optionEnd+4), "Other?",         4],
+  [char(optionEnd+5), "Instructions",   5, 200],
+  [char(optionEnd+6), "Correct Text",   6, 200],
+  [char(optionEnd+7), "Incorrect Text", 7, 200],
+  [char(optionEnd+8), "URL / ID",       8]
 ];
 const options = [ //supported Form question types (not the actual naming GAS uses, but my simplification of them)
   "MC", "CHECKBOX", "MCGRID", "CHECKGRID", "SHORTANSWER", 
@@ -58,6 +58,7 @@ let titleNumber = 1, descriptionNumber = 1;
 let alertCell = "H5", randomOptionCell = "H6", randomQuestionCell = "H7";
 let alertBool = true, randomOptionBool = false, randomQuestionBool = false;
 let defaultPointsCell = "H9", defaultRequiredCell = "H8";
+let optionCell = "C4", optionCellValue = "D4";
 let defaultPoints = 0, defaultRequired = false;
 let tagGap = 14, tagRow = 4;
 
@@ -107,7 +108,7 @@ function update() {
   folderID     = ss().getRange("B5").getValue();
   optionLength = ss().getRange("B6").getValue(); optionEnd = optionStart+optionLength;
   tagLength    = ss().getRange("B7").getValue(); tagStart = optionStart+7;
-  desRow       = ss().getRange("B8").getValue(); desCol = optionLength+10;
+  desRow       = ss().getRange("B8").getValue(); desCol = Math.max(5, optionLength)+10;
   charOptionStart = char(optionEnd-optionLength+1); charOptionEnd = char(optionEnd);
   charEnd = char(desCol);
 
@@ -140,8 +141,10 @@ function update() {
   for (let i=0;i<sa().getSheets().length;i++) {
     if(sa().getSheets()[i].getName()==="Settings") continue;
     sa().setActiveSheet(sa().getSheets()[i]);
+    ss().getRange(1, 1, ss().getMaxRows(), ss().getMaxColumns()).setDataValidation(null);
     for (let j=0;j<header.length;j++) {
-      if(header[j][1]==="Tag") setValidation(header[j][0]+(headerSize+1)+":"+header[j][0]+ss().getMaxRows(), tagNameArr);
+      if(header[j][1]==="Tag") setValidation(char(optionEnd+header[j][2])+(headerSize+1)+":"+char(optionEnd+header[j][2])+ss().getMaxRows(), tagNameArr);
+      if(header[j][1]==="Required?" || header[j][1]==="Other?") setValidation(char(optionEnd+header[j][2])+(headerSize+1)+":"+char(optionEnd+header[j][2])+ss().getMaxRows(), bool);
     }
     //renaming tag names in normal sheets
     for(let i=0;i<tagLength;i++) {
@@ -246,7 +249,7 @@ function createTemplate() {
   update();
   resizeSheet(desRow, desCol);
 
-  ss().clear(); //clears formatting
+  ss().clear(); //clears content
   ss().setRowHeights(1, desRow, 21); ss().setColumnWidths(1, desCol, 100); //resize cells to default cell size
   ss().setRowHeights(1, headerSize, 25);
   ss().getRange(1, 1, desRow, desCol).setDataValidation(null); //clears data formatting so you dont need to create a new sheet
@@ -260,10 +263,13 @@ function createTemplate() {
   ss().getRange("C1").setValue("Public URL:");
   ss().getRange("C2").setValue("Private URL:");
 
+  ss().getRange(optionCell).setValue("# of options");
+  ss().getRange(optionCellValue).setValue(optionLength);
   //header info
   ss().setRowHeight(headerSize, 50);
   for (let i=0;i<header.length;i++) {
-    ss().getRange(header[i][0]+headerSize).setValue(header[i][1]);
+    if(header[i][1].includes("Question")) ss().getRange(header[i][0]+headerSize).setValue(header[i][1]);
+    else ss().getRange(char(header[i][2]+optionEnd)+headerSize).setValue(header[i][1]);
   } ss().getRange(charOptionStart+headerSize+":"+charOptionEnd+headerSize).setValue("OPTION");
 
   ss().getRange("E2").setValue("Values to the right of the tag names will be the number of problems with those tags on the Google Form");
@@ -276,9 +282,8 @@ function createTemplate() {
   //validations
   for (let i=0;i<header.length;i++) {
     if(header[i][1]==="Question Type") setValidation(header[i][0]+(headerSize+1)+":"+header[i][0]+desRow, options);
-    if(header[i][1]==="Required?") setValidation(header[i][0]+(headerSize+1)+":"+header[i][0]+desRow, bool);
-    if(header[i][1]==="Other?") setValidation(header[i][0]+(headerSize+1)+":"+header[i][0]+desRow, bool);
-    if(header[i][1]==="Tag") setValidation(header[i][0]+(headerSize+1)+":"+header[i][0]+desRow, tagNameArr);
+    if(header[i][1]==="Tag") setValidation(char(optionEnd+header[i][2])+(headerSize+1)+":"+char(optionEnd+header[i][2])+ss().getMaxRows(), tagNameArr);
+    if(header[i][1]==="Required?" || header[i][1]==="Other?") setValidation(char(optionEnd+header[i][2])+(headerSize+1)+":"+char(optionEnd+header[i][2])+ss().getMaxRows(), bool);
   }
 
   //cell width formatting
