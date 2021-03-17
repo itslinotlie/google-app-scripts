@@ -139,7 +139,7 @@ function update() {
   //validation for the tag column
   sa().setActiveSheet(sa().getSheetByName(sheetName));
   for (let i=0;i<sa().getSheets().length;i++) {
-    if(sa().getSheets()[i].getName()==="Settings") continue;
+    if(sa().getSheets()[i].getName()==="Settings" || ss().getRange("A1").getValue()==='') continue;
     sa().setActiveSheet(sa().getSheets()[i]);
     ss().getRange(1, 1, ss().getMaxRows(), ss().getMaxColumns()).setDataValidation(null);
     optionEnd = optionStart+ss().getRange(optionCellValue).getValue();
@@ -241,12 +241,11 @@ function createTemplate() {
     return;
   }
   let x = data().length; //checker to see if data is valid is "out of bounds" for empty spreadsheet, but js is weird and I need use variable rather than data().length
-  if((sa().getSheetByName("Settings")!=null && (alertBool = sa().getSheetByName("Settings").getRange(alertCell).getValue())) 
+  if((sa().getSheetByName("Settings")!=null && (sa().getSheetByName("Settings").getRange(alertCell).getValue()==true)) 
       && (x!=1) && (data()[0][1]!=="" || ss().getLastRow()>6)) { //have title? have info in the bottom?
     let response = UI.alert("Are you sure? (all information will be cleared)", UI.ButtonSet.YES_NO);
     if(response===UI.Button.NO) return;
   }
-
   update();
   resizeSheet(desRow, desCol);
 
