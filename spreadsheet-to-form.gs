@@ -142,6 +142,7 @@ function update() {
     if(sa().getSheets()[i].getName()==="Settings") continue;
     sa().setActiveSheet(sa().getSheets()[i]);
     ss().getRange(1, 1, ss().getMaxRows(), ss().getMaxColumns()).setDataValidation(null);
+    optionEnd = optionStart+ss().getRange(optionCellValue).getValue();
     for (let j=0;j<header.length;j++) {
       if(header[j][1]==="Tag") setValidation(char(optionEnd+header[j][2])+(headerSize+1)+":"+char(optionEnd+header[j][2])+ss().getMaxRows(), tagNameArr);
       if(header[j][1]==="Required?" || header[j][1]==="Other?") setValidation(char(optionEnd+header[j][2])+(headerSize+1)+":"+char(optionEnd+header[j][2])+ss().getMaxRows(), bool);
@@ -263,8 +264,10 @@ function createTemplate() {
   ss().getRange("C1").setValue("Public URL:");
   ss().getRange("C2").setValue("Private URL:");
 
-  ss().getRange(optionCell).setValue("# of options");
+  ss().getRange(optionCell).setValue("# of options (ignore the error)");
   ss().getRange(optionCellValue).setValue(optionLength);
+  setValidation(optionCellValue+":"+optionCellValue, []);
+
   //header info
   ss().setRowHeight(headerSize, 50);
   for (let i=0;i<header.length;i++) {
