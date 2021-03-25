@@ -1,5 +1,7 @@
 
-// var ss = function() {return SpreadsheetApp.getActiveSpreadsheet().getActiveSheet()}
+var ss = function() {return SpreadsheetApp.getActiveSpreadsheet().getActiveSheet()}
+var calID = function() {return ss().getRange("B1").getValue();}
+var color = function() {return 11;} //represents red
 
 function onInstall(e) {
     onOpen(e);
@@ -7,19 +9,37 @@ function onInstall(e) {
 function onOpen(e) {
     // let menu = UI.createMenu("Forms"); Used as standalone
     let menu = SpreadsheetApp.getUi().createAddonMenu(); //used with congunction with google marketplace
+    menu.addItem("Init", "init").addToUi();
     menu.addItem("Delete all events", "deleteAll").addToUi(); //delete events from calendar
     menu.addItem("Fill in lessons", "fillInDate").addToUi(); //add dates beside events in Spreadsheet
     menu.addItem("Add events to calendar", "addToCalendar").addToUi(); //add spreadsheet events into calendar
 }
-function deleteAll() { //need to figure out how to delete only inserted ones (so I don't end up deleting the wrong things)
-    // in the form of MM/DD/YYYY
-    let start = new Date(), end = new Date();
-    let calendarId = ''; // need to figure out how to get this
+function init() {
+    ss().clear();
+    ss().getRange("A1").setValue("Cal ID:");
+    ss().getRange("B1").setValue("335396990@gapps.yrdsb.ca");
 
-    let calendar = CalendarApp.getCalendarById(calendarId);
+    ss().getRange("A2").setValue("Title");
+    ss().getRange("B2").setValue("Start");
+    ss().getRange("C2").setValue("End");
+    // ss().getRange("D2").setValue("Color");
+}
+function deleteAll() {
+    // in the form of MM/DD/YYYY, else its just present day
+    let start = new Date('01/01/2018'), end = new Date();
+
+    let calendar = CalendarApp.getCalendarById(calID());
     let events = calendar.getEvents(start, end);
-    while(events.length>0) {
-        events[i].deleteEvent();
+    /*
+    Useful event calendar functions:
+    -getColor()
+    -getTitle()
+    -getDescription()
+    -getStartTime()
+    -getEndTime()
+    */
+    for(let i=0;i<events.length;i++) {
+        ss().getRange("C"+(i+1)).setValue(events[i].getTitle()+" | "+events[i].getEndTime());
     }
 }
 function fillInDate() {
@@ -32,14 +52,32 @@ function fillInDate() {
     }
 }
 function addToCalendar() {
-    var ss = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-    var data = ss.getRange().getValues(); //need to indicate range when I create the template
-    let calendaryId = '';
+    let data = ss().getDataRange().getValues();
+    let calendar = CalendarApp.getCalendarById(calID());
 
-    let calendar = CalendarApp.getCalendarById(calendaryId);
-    for(let i=0;i<data.length;i++) {
-        //check if start and end dates are filled
-        //check to see if event apperas in calendar?
-        var newEvent = defaultCalendar.createEvent(title, newDate(start), newDate(end), {location:something});
+    for(let i=2;i<data.length;i++) {
+        let title = data[i][0];
+        let start = data[i][1], end = data[i][2];
+        if(start!=null && end!=null) {
+            let event = calendar.createEvent(title, new Date(start), new Date(end));
+            event.setColor(color());
+        }
+
+        //things I need to do:
+        //check to see if event already appears in calendar? -> how duplicates are handled
     }
 }
+/*
+color bank:
+1 | pale blue
+2 | pale green
+3 | dark blue
+4 | red
+5 | yellow
+6 | orange
+7 | cyan
+8 | gray
+9 | blue
+10 | green
+11 | red
+*/
