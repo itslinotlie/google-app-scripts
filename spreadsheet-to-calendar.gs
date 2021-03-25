@@ -1,7 +1,7 @@
 
 var ss = function() {return SpreadsheetApp.getActiveSpreadsheet().getActiveSheet()}
 var calID = function() {return ss().getRange("B1").getValue();}
-var color = function() {return 11;} //represents red
+var color = function() {return 7;} //represents red
 
 function onInstall(e) {
     onOpen(e);
@@ -22,24 +22,18 @@ function init() {
     ss().getRange("A2").setValue("Title");
     ss().getRange("B2").setValue("Start");
     ss().getRange("C2").setValue("End");
-    // ss().getRange("D2").setValue("Color");
+    ss().getRange("D2").setValue("Color");
 }
 function deleteAll() {
     // in the form of MM/DD/YYYY, else its just present day
-    let start = new Date('01/01/2018'), end = new Date();
+    let start = new Date('03/01/2021'), end = new Date('04/01/2021');
 
     let calendar = CalendarApp.getCalendarById(calID());
     let events = calendar.getEvents(start, end);
-    /*
-    Useful event calendar functions:
-    -getColor()
-    -getTitle()
-    -getDescription()
-    -getStartTime()
-    -getEndTime()
-    */
+
+    //this feels very sketchy, but it works... (I would have thought that by deleting, indexes get shifted, but I guess you don't have to account for that)
     for(let i=0;i<events.length;i++) {
-        ss().getRange("C"+(i+1)).setValue(events[i].getTitle()+" | "+events[i].getEndTime());
+        if(events[i].getColor()==color()) events[i].deleteEvent();
     }
 }
 function fillInDate() {
@@ -58,16 +52,25 @@ function addToCalendar() {
     for(let i=2;i<data.length;i++) {
         let title = data[i][0];
         let start = data[i][1], end = data[i][2];
+        let color = data[i][3];
         if(start!=null && end!=null) {
             let event = calendar.createEvent(title, new Date(start), new Date(end));
-            event.setColor(color());
+            event.setColor(color);
         }
 
         //things I need to do:
         //check to see if event already appears in calendar? -> how duplicates are handled
     }
 }
+
 /*
+Useful event calendar functions:
+-getColor()
+-getTitle()
+-getDescription()
+-getStartTime()
+-getEndTime()
+
 color bank:
 1 | pale blue
 2 | pale green
