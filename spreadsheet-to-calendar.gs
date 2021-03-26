@@ -1,7 +1,9 @@
 
 var ss = function() {return SpreadsheetApp.getActiveSpreadsheet().getActiveSheet()}
+var sa = function() {return SpreadsheetApp.getActiveSpreadsheet();}
 var calID = function() {return ss().getRange("B1").getValue();}
 var color = function() {return 7;} //represents red
+var  yrdsbID = function() {return "3kirfs2j6u2dob2n587e5om1gs@group.calendar.google.com";} //calendar for YRDSB holidays -> took a long time of debugging, but you have to add the calendar to your personal calendar for this to work
 
 function onInstall(e) {
     onOpen(e);
@@ -13,6 +15,7 @@ function onOpen(e) {
     menu.addItem("Delete all events", "deleteAll").addToUi(); //delete events from calendar
     menu.addItem("Fill in lessons", "fillInDate").addToUi(); //add dates beside events in Spreadsheet
     menu.addItem("Add events to calendar", "addToCalendar").addToUi(); //add spreadsheet events into calendar
+    menu.addItem("Show YRDSB holidays", "holiday").addToUi();
 }
 function init() {
     ss().clear();
@@ -74,6 +77,28 @@ function addToCalendar() {
         //things I need to do:
         //check to see if event already appears in calendar? -> how duplicates are handled
     }
+}
+function holiday() {
+    let sheetName = ss().getName();
+    if(sa().getSheetByName("Holidays")==null) sa().insertSheet("Holidays");
+    sa().setActiveSheet(sa().getSheetByName("Holidays"));
+    ss().setColumnWidths(1, 3, 175);
+
+    let calendar = CalendarApp.getCalendarById(yrdsbID());
+    let start = new Date("09/01/2020"), end = new Date("06/01/2021");
+    let events = calendar.getEvents(start, end);
+
+    ss().getRange("A1").setValue("Holiday type");
+    ss().getRange("B1").setValue("Start date");
+    ss().getRange("C1").setValue("End date");
+    for(let i=0;i<events.length;i++) {
+        ss().getRange("A"+(i+3)).setValue(events[i].getTitle());
+        ss().getRange("B"+(i+3)).setValue(events[i].getStartTime());
+        ss().getRange("C"+(i+3)).setValue(events[i].getEndTime());
+        ss().getRange("D"+(i+3)).setValue(events[i].getLocation());
+        ss().getRange("E"+(i+3)).setValue(events[i].getDescription());
+    }
+    sa().setActiveSheet(sa().getSheetByName(sheetName));
 }
 
 /*
