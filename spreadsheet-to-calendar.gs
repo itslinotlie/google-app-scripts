@@ -37,12 +37,25 @@ function deleteAll() {
     }
 }
 function fillInDate() {
-    var ss = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-    var data = ss.getRange().getValues();
+    // var ss = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    var data = ss().getDataRange().getValues();
 
-    for(let i=0;i<data.length;i++) {
-        //check if date is holiday
-        //else add proper date beside event
+    //this is some google sheet formula black magic but I think whats happening is
+    //it checks if the day is a weekend, if true, returns 3 else returns 1 -> from the IF(x, a, b) thing, but I dont 
+    //know why in the world it works. I'm chalking this up on the fact that this is a sheets formula and not actual code...
+
+    //needs to have the first row's date filled in
+    for(let i=4;i<20;i++) {
+        //skips over weekends (dont ask me how) and writes the next day on the right
+        //because Calendar events need [date, date+1) or something....
+        let cell  = '(B'+(i-1)+")";
+        let start   = '='+cell+'+IF(WEEKDAY'+cell+'=6,3,1)';
+        let end     = '=B'+i+"+1";
+
+        //just need to check if current date = holiday/pa day, then skip
+
+        ss().getRange("B"+i).setValue(start);
+        ss().getRange("C"+i).setValue(end);
     }
 }
 function addToCalendar() {
