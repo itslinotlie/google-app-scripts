@@ -2,9 +2,20 @@
 var ss = function() {return SpreadsheetApp.getActiveSpreadsheet().getActiveSheet()}
 var sa = function() {return SpreadsheetApp.getActiveSpreadsheet();}
 var calID = function() {return ss().getRange("B1").getValue();}
-var color = function() {return 7;} //represents red
 var  yrdsbID = function() {return "3kirfs2j6u2dob2n587e5om1gs@group.calendar.google.com";} //calendar for YRDSB holidays -> took a long time of debugging, but you have to add the calendar to your personal calendar for this to work
-const colorBank = ["#a4bdfc","#7ae7bf","#bdadff","#ff887c","#fbd75b","#ffb878","#46d6db","#e1e1e1","#5484ed","#51b749", "#dc2127"]
+const colorBank = [
+    "#7986cb",
+    "#33b679",
+    "#8e24aa",
+    "#e67c73",
+    "#f6bf26",
+    "#f4511e",
+    "#039be5",
+    "#616161",
+    "#3f51b5",
+    "#0b8043",
+    "#d50000"
+]
 
 function onInstall(e) {
     onOpen(e);
@@ -39,22 +50,25 @@ function init() {
     ss().getRange("A1").setValue("Delete Events");
     ss().getRange("A3").setValue("Start date:");
     ss().getRange("A4").setValue("End date:");
-    ss().getRange("A5").setValue("Delete Color Tag:");
+    ss().getRange("A5").setValue("Delete Color Tag: (enter #)");
     ss().getRange("B2").setValue("DD/MM/YYYY");
     ss().getRange("B3").setValue("01/09/2020");
     ss().getRange("B4").setValue("01/06/2021");
+    ss().getRange("B5").setValue("11");
     ss().getRange("B5:B5").setBackground(colorBank[10]); //red
+
     for(let i=0;i<11;i++) {
+        ss().getRange("C"+(5+i)).setValue(i+1);
         ss().getRange("C"+(5+i)+":"+"C"+(5+i)).setBackground(colorBank[i]);
-        ss().getRange("C"+(5+i)).setValue((i+1));
     }
-    sa().setActiveSheet(sa().getSheetByName(sheetName));;
+    sa().setActiveSheet(sa().getSheetByName(sheetName));
 }
 function deleteAll() {
-    let sheetName =ss().getName();
+    let sheetName = ss().getName();
     sa().setActiveSheet(sa().getSheetByName("Settings"));
     let start = ss().getRange("B3").getValue();
     let end = ss().getRange("B4").getValue();
+    let colorNum = ss().getRange("B5").getValue();
     sa().setActiveSheet(sa().getSheetByName(sheetName));
 
     let calendar = CalendarApp.getCalendarById(calID());
@@ -62,7 +76,7 @@ function deleteAll() {
 
     //this feels very sketchy, but it works... (I would have thought that by deleting, indexes get shifted, but I guess you don't have to account for that)
     for(let i=0;i<events.length;i++) {
-        if(events[i].getColor()==color()) events[i].deleteEvent();
+        if(events[i].getColor()==colorNum) events[i].deleteEvent();
     }
 }
 function fillInDate() {
@@ -132,16 +146,16 @@ Useful event calendar functions:
 -getStartTime()
 -getEndTime()
 
-color bank:
-1  #a4bdfc | pale blue
-2  #7ae7bf | pale green
-3  #bdadff | dark blue
-4  #ff887c | red
-5  #fbd75b | yellow
-6  #ffb878 | orange
-7  #46d6db | cyan
-8  #e1e1e1 | gray
-9  #5484ed | blue
-10 #51b749 | green
-11 #dc2127 | red
+updated color bank:
+1  #7986cb | pale blue
+2  #33b679 | pale green
+3  #8e24aa | purple
+4  #e67c73 | salmon
+5  #f6bf26 | yellow
+6  #f4511e | orange
+7  #039be5 | cyan
+8  #616161 | gray
+9  #3f51b5 | dark blue
+10 #0b8043 | green
+11 #d50000 | red
 */
