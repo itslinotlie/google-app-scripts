@@ -556,7 +556,7 @@ function shuffle(arr) { //Fisher-Yates shuffle
 }
 function find(x) {
   for (let i=0;i<header.length;i++) {
-    if(header[i][1]===x) return header[i][2];
+    if(header[i][1]===x) return header[i][2]+optionEnd;
   }
 }
 function linkDoc() { //copied from https://support.google.com/docs/thread/16869830?hl=en&msgid=17047454 (beyond the scope of this project)
