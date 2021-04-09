@@ -17,8 +17,6 @@ const colorBank = [
     "#d50000"
 ]
 
-let startDate = new Date("01/09/2020"), endDate = new Date("01/06/2022");
-
 function onInstall(e) {
     onOpen(e);
 }
@@ -142,24 +140,47 @@ function holiday() {
     let sheetName = ss().getName();
     if(sa().getSheetByName("Holidays")==null) sa().insertSheet("Holidays");
     sa().setActiveSheet(sa().getSheetByName("Holidays"));
-    ss().setColumnWidths(1, 3, 175); //set column widths to be bigger
+    ss().setColumnWidths(1, 4, 175); //set column widths to be bigger
 
-    let calendar = CalendarApp.getCalendarById(yrdsbID());
-    let start = new Date("01/01/2020"), end = new Date("01/01/2022");
-    let events = calendar.getEvents(start, end);
+    let start = new Date("01/01/2021"), end = new Date("01/01/2025");
 
     ss().getRange("A1").setValue("Holiday type");
-    ss().getRange("B1").setValue("Start date (event is all day)");
+    ss().getRange("B1").setValue("Event Start");
+    ss().getRange("C1").setValue("Event End");
     //javascript date class is weird, but stackoverflow is better
-    ss().getRange("A2").setValue("Start Date: "+startDate.toLocaleDateString().substring(0, startDate.toLocaleString().indexOf(' ')));
-    ss().getRange("B2").setValue("End Date: "+endDate.toLocaleDateString().substring(0, endDate.toLocaleString().indexOf(' ')));
+    ss().getRange("A2").setValue("Start Date:");
+    ss().getRange("C2").setValue("End Date:");
+    if(ss().getRange("B2").getValue()==="") ss().getRange("B2").setValue(start.toLocaleDateString().substring(0, start.toLocaleString().indexOf(' ')));
+    if(ss().getRange("D2").getValue()==="") ss().getRange("D2").setValue(end.toLocaleDateString().substring(0, end.toLocaleString().indexOf(' ')));
+
+    start = ss().getRange("B2").getValue();
+    end   = ss().getRange("D2").getValue();
+    let calendar = CalendarApp.getCalendarById(yrdsbID());
+    let events = calendar.getEvents(start, end);
+
+    //init row, init col, # of rows, # of cols
+    let range = ss().getRange(3, 1, ss().getMaxRows()-3, ss().getMaxColumns());
+    range.clear();
+
+    ss().getRange("D4").setValue(start.toLocaleDateString().substring(0, start.toLocaleString().indexOf(' ')));
+    ss().getRange("D5").setValue(end.toLocaleDateString().substring(0, end.toLocaleString().indexOf(' ')))
+    setFormat(["A1:D2"], ["bold", 12]);
+
     for(let i=0;i<events.length;i++) {
         ss().getRange("A"+(i+3)).setValue(events[i].getTitle());
         ss().getRange("B"+(i+3)).setValue(events[i].getAllDayStartDate());
+        ss().getRange("C"+(i+3)).setValue(events[i].getAllDayEndDate());
     }
     sa().setActiveSheet(sa().getSheetByName(sheetName));
 }
-
+function setFormat(range, type) {
+    for (let i=0;i<range.length;i++) {
+      for (let j=0;j<type.length;j++) {
+        if(type[j]==="bold") ss().getRange(range[i]).setFontWeight("bold");
+        else if(!isNaN(type[j])) ss().getRange(range[i]).setFontSize(type[j]);
+      }
+    }
+  }
 /*
 Useful event calendar functions:
 -getColor()
@@ -180,29 +201,4 @@ updated color bank:
 9  #3f51b5 | dark blue
 10 #0b8043 | green
 11 #d50000 | red
-*/
-/*
-hi	01/03/2021	01/03/2021
-hi	02/03/2021	03/03/2021
-hi	03/03/2021	04/03/2021
-hi	04/03/2021	05/03/2021
-hi	05/03/2021	06/03/2021
-hi	08/03/2021	09/03/2021
-hi	09/03/2021	10/03/2021
-hi	10/03/2021	11/03/2021
-hi	11/03/2021	12/03/2021
-hi	12/03/2021	13/03/2021
-hi	15/03/2021	16/03/2021
-hi	16/03/2021	17/03/2021
-hi	17/03/2021	18/03/2021
-hi	18/03/2021	19/03/2021
-hi	19/03/2021	20/03/2021
-hi	22/03/2021	23/03/2021
-hi	23/03/2021	24/03/2021
-hi	24/03/2021	25/03/2021
-hi	25/03/2021	26/03/2021
-hi	26/03/2021	27/03/2021
-hi	29/03/2021	30/03/2021
-hi	30/03/2021	31/03/2021
-hi	31/03/2021	01/04/2021
 */
