@@ -16,6 +16,10 @@ const colorBank = [
     "#0b8043",
     "#d50000"
 ]
+let startDeleteDate = new Date("01/09/2020"), endDeleteDate = new Date("01/06/2022");
+let delColor = 11; //default color is red
+//abbreviations
+let SA = SpreadsheetApp;
 
 function onInstall(e) {
     onOpen(e);
@@ -28,6 +32,27 @@ function onOpen(e) {
     menu.addItem("Fill in lessons", "fillInDate").addToUi(); //add dates beside events in Spreadsheet
     menu.addItem("Add events to calendar", "addToCalendar").addToUi(); //add spreadsheet events into calendar
     menu.addItem("Show YRDSB holidays", "holiday").addToUi();
+    menu.addItem("Update Settings", "update").addToUi();
+}
+function update() {
+  if(ss().getRange("B3").getValue()!=="") startDeleteDate = ss().getRange("B3").getValue();
+  if(ss().getRange("B4").getValue()!=="") endDeleteDate   = ss().getRange("B4").getValue();
+  if(ss().getRange("B5").getValue()!=="") delColor = ss().getRange("B5").getValue();
+
+  ss().getRange("A3").setValue("Delete Start Date*:");
+  ss().getRange("A4").setValue("Delete End Date*:");
+  ss().getRange("A5").setValue("Delete Color Tag: (enter #)");
+  ss().getRange("A6").setValue("*The range is [Start, end)");
+  ss().getRange("B2").setValue("DD/MM/YYYY");
+  ss().getRange("B3").setValue(startDeleteDate);
+  ss().getRange("B4").setValue(endDeleteDate);
+  ss().getRange("B5").setValue(delColor);
+  ss().getRange("B5:B5").setBackground(colorBank[delColor-1]); //red by default
+
+  for(let i=0;i<11;i++) {
+    ss().getRange("C"+(5+i)).setValue(i+1);
+    ss().getRange("C"+(5+i)+":"+"C"+(5+i)).setBackground(colorBank[i]);
+  }
 }
 function init() {
     let sheetName = ss().getName();
@@ -42,28 +67,14 @@ function init() {
     ss().getRange("D2").setValue("Color");
     ss().getRange("E1").setValue("Date is in the form of DD/MM/YYYY");
 
-    if(sa().getSheetByName("Settings")==null) sa().insertSheet("Settings");
-    sa().setActiveSheet(sa().getSheetByName("Settings"));
-    ss().clear();
-    ss().setColumnWidths(1, 3, 175); //set column widths to be bigger
-
-    ss().getRange("A1").setValue("Delete Events");
-    ss().getRange("A3").setValue("Start date:");
-    ss().getRange("A4").setValue("End date:");
-    ss().getRange("A5").setValue("Delete Color Tag: (enter #)");
-    ss().getRange("B2").setValue("DD/MM/YYYY");
-    ss().getRange("B3").setValue(startDate);
-    ss().getRange("B4").setValue(endDate);
-    ss().getRange("B5").setValue("11");
-    ss().getRange("B5:B5").setBackground(colorBank[10]); //red
-
-    for(let i=0;i<11;i++) {
-        ss().getRange("C"+(5+i)).setValue(i+1);
-        ss().getRange("C"+(5+i)+":"+"C"+(5+i)).setBackground(colorBank[i]);
+    if(sa().getSheetByName("Settings")==null) {
+      sa().insertSheet("Settings");
+      sa().setActiveSheet(sa().getSheetByName("Settings"));
+      ss().clear();
+      ss().setColumnWidths(1, 3, 175); //set column widths to be bigger
+      update();
     }
-
-    holiday();
-
+    if(sa().getSheetByName("Holidays")==null) holiday();
     sa().setActiveSheet(sa().getSheetByName(sheetName));
 }
 function deleteAll() {
@@ -93,8 +104,8 @@ function fillInDate() {
     //checks if the prev day was Friday, if so, add 3 days so it becomes monday, else add one day
     //that is some 100x engineer kind of code if I do say so myself. stackoverflow orz
 
-    let something = 7;
     //needs to have the first row's date filled in
+    ss().getRange("D3").setBackground(colorBank[ss().getRange("D3").getValue()-1]);
     for(let i=4;i<=data.length;i++) { //thought it had to be i<length but /shrug
         let cell  = '(B'+(i-1)+")";
         let start = '='+cell+'+IF(WEEKDAY'+cell+'=6,3,1)';
@@ -103,11 +114,6 @@ function fillInDate() {
         ss().getRange("D1").setValue(date); //to prevent infinte loop with the formula
         let tmp = new Date(holiday[idx][1]);
         while(idx<holiday.length && +date>=+tmp) {
-            ss().getRange("B"+something).setValue(idx+" | "+holiday.length+" = "+holiday[idx][1]);
-            ss().getRange("C"+something).setValue(date);
-            ss().getRange("D"+(something)).setValue(tmp);
-            ss().getRange("E"+(something++)).setValue(+date>=+tmp);
-            ss().getRange("D1").setValue(date);
             if(+date===+tmp) {
                 ss().getRange("C1").setValue(ss().getRange("D1").getValue());
                 ss().getRange("D1").setValue("=C1+IF(WEEKDAY(C1)=6,3,1)");
@@ -117,6 +123,7 @@ function fillInDate() {
             tmp = new Date(holiday[++idx][1]);
         }
         ss().getRange("B"+i).setValue(date);
+        ss().getRange("D"+i).setBackground(colorBank[ss().getRange("D"+i).getValue()-1]);
     }
     ss().getRange("C1").setValue("");
     ss().getRange("D1").setValue("");
@@ -127,9 +134,9 @@ function addToCalendar() {
 
     for(let i=2;i<data.length;i++) {
         let title = data[i][0];
-        let start = data[i][1];//, end = data[i][2];
+        let start = data[i][1];
         let color = data[i][3];
-        if(start!=null && end!=null) {
+        if(start!=null) {
             let event = calendar.createEvent(title, new Date(start), new Date(start));
             event.setColor(color);
             event.setAllDayDate(start);
@@ -161,10 +168,8 @@ function holiday() {
     //init row, init col, # of rows, # of cols
     let range = ss().getRange(3, 1, ss().getMaxRows()-3, ss().getMaxColumns());
     range.clear();
-
-    ss().getRange("D4").setValue(start.toLocaleDateString().substring(0, start.toLocaleString().indexOf(' ')));
-    ss().getRange("D5").setValue(end.toLocaleDateString().substring(0, end.toLocaleString().indexOf(' ')))
     setFormat(["A1:D2"], ["bold", 12]);
+    setStrategy("A1:A"+ss().getMaxRows(), ["WRAP"]);
 
     for(let i=0;i<events.length;i++) {
         ss().getRange("A"+(i+3)).setValue(events[i].getTitle());
@@ -174,13 +179,24 @@ function holiday() {
     sa().setActiveSheet(sa().getSheetByName(sheetName));
 }
 function setFormat(range, type) {
-    for (let i=0;i<range.length;i++) {
-      for (let j=0;j<type.length;j++) {
-        if(type[j]==="bold") ss().getRange(range[i]).setFontWeight("bold");
-        else if(!isNaN(type[j])) ss().getRange(range[i]).setFontSize(type[j]);
-      }
+  for (let i=0;i<range.length;i++) {
+    for (let j=0;j<type.length;j++) {
+      if(type[j]==="bold") ss().getRange(range[i]).setFontWeight("bold");
+      else if(!isNaN(type[j])) ss().getRange(range[i]).setFontSize(type[j]);
     }
   }
+}
+function setStrategy(range, type) {
+  for (let i=0;i<type.length;i++) {
+    if(type[i]==="WRAP") ss().getRange(range).setWrapStrategy(SA.WrapStrategy.WRAP);
+    else if(type[i]==="FLOW") ss().getRange(range).setWrapStrategy(SA.WrapStrategy.OVERFLOW);
+    else if(type[i]==="CLIP") ss().getRange(range).setWrapStrategy(SA.WrapStrategy.CLIP);
+    else if(type[i]==="VTOP") ss().getRange(range).setVerticalAlignment("top");
+    else if(type[i]==="VCENTER") ss().getRange(range).setVerticalAlignment("middle");
+    else if(type[i]==="HLEFT") ss().getRange(range).setHorizontalAlignment("left");
+    else if(type[i]==="HCENTER") ss().getRange(range).setHorizontalAlignment("center");
+  }
+}
 /*
 Useful event calendar functions:
 -getColor()
