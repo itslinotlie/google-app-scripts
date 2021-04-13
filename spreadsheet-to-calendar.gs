@@ -112,15 +112,15 @@ function fillInDate() {
         ss().getRange("D1").setValue(start); //need a dummy cell
         let date = new Date(ss().getRange("D1").getValue());
         ss().getRange("D1").setValue(date); //to prevent infinte loop with the formula
-        let tmp = new Date(holiday[idx][1]);
-        while(idx<holiday.length && +date>=+tmp) {
-            if(+date===+tmp) {
-                ss().getRange("C1").setValue(ss().getRange("D1").getValue());
-                ss().getRange("D1").setValue("=C1+IF(WEEKDAY(C1)=6,3,1)");
-            }
+        let srt = new Date(holiday[idx][1]), end = new Date(holiday[idx][2]);
+        while(idx<holiday.length && +date>=+srt) {
+          while(+srt<=+date && +date<+end) {
+            ss().getRange("C1").setValue(ss().getRange("D1").getValue());
+            ss().getRange("D1").setValue("=C1+IF(WEEKDAY(C1)=6,3,1)");
             date = new Date(ss().getRange("D1").getValue());
-            if(idx===holiday.length-1) break;
-            tmp = new Date(holiday[++idx][1]);
+          }
+          if(idx===holiday.length-1) break;
+          srt = new Date(holiday[++idx][1]); end = new Date(holiday[idx][2]);
         }
         ss().getRange("B"+i).setValue(date);
         ss().getRange("D"+i).setBackground(colorBank[ss().getRange("D"+i).getValue()-1]);
