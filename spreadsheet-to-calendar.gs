@@ -80,12 +80,12 @@ function initialize() {
 function deleteAll() {
     update(); let calendar;
     curCalID = ss().getRange("B1").getValue();
-    if(curCalID!=="") calendar = CalendarApp.getCalendarById(curCalID);
+    if(curCalID.includes("@")) calendar = CalendarApp.getCalendarById(curCalID);
     else calendar = CalendarApp.getCalendarById(defCalID);
     let events = calendar.getEvents(startDeleteDate, endDeleteDate);
 
     for(let i=0;i<events.length;i++) {
-        if(events[i].getColor()==colorNum) events[i].deleteEvent();
+        if(events[i].getColor()==delColor) events[i].deleteEvent();
     }
 }
 function fillDate() {
@@ -101,7 +101,6 @@ function fillDate() {
 
     //needs to have the first row's date filled in
     ss().getRange("C"+(headerSize+1)).setBackground(colorBank[ss().getRange("C"+(headerSize+1)).getValue()-1]);
-    let something = 3;
     for(let i=headerSize+2;i<=data.length;i++) {
         let cell  = '(B'+(i-1)+")";
         let start = '='+cell+'+IF(WEEKDAY'+cell+'=6,3,1)';
@@ -132,10 +131,11 @@ function addToCalendar() {
     else calendar = CalendarApp.getCalendarById(defCalID);
     let data = ss().getDataRange().getValues();
 
-    for(let i=2;i<data.length;i++) {
+    for(let i=3;i<data.length;i++) {
         let title = data[i][0];
         let start = data[i][1];
         let color = data[i][2];
+        ss().getRange(i+1, 3).setBackground(colorBank[ss().getRange(i+1, 3).getValue()-1]); //1-index -> row, col
         if(start!=null) {
             let event = calendar.createEvent(title, new Date(start), new Date(start));
             event.setColor(color);
@@ -155,9 +155,12 @@ function holiday() {
     ss().getRange("C1").setValue("Event End");
     ss().getRange("A2").setValue("Start Date:");
     ss().getRange("C2").setValue("End Date:");
-    //javascript date class is weird, but stackoverflow is better
+    //javascript date class is weird, but stackoverflow isn't (:
     if(ss().getRange("B2").getValue()==="") ss().getRange("B2").setValue(start.toLocaleDateString().substring(0, start.toLocaleString().indexOf(' ')));
     if(ss().getRange("D2").getValue()==="") ss().getRange("D2").setValue(end.toLocaleDateString().substring(0, end.toLocaleString().indexOf(' ')));
+
+    start = ss().getRange("B2").getValue();
+    end   = ss().getRange("D2").getValue();
 
     let calendar = CalendarApp.getCalendarById(yrdsbID());
     let events = calendar.getEvents(start, end);
