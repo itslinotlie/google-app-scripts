@@ -16,8 +16,9 @@ const colorBank = [
     "#d50000"
 ]
 let startDeleteDate = new Date("01/09/2020"), endDeleteDate = new Date("01/06/2021");
+let startCalDate, endCalDate;
 let delColor = 11, headerSize = 3; //default color is red
-let defCalID, curCalID;
+let defCalID, curCalID, spreadID;
 //abbreviations
 let SA = SpreadsheetApp;
 
@@ -31,6 +32,7 @@ function onOpen(e) {
     menu.addItem("Delete Generated Events", "deleteAll").addToUi(); //delete events from calendar
     menu.addItem("Fill in Lessons Dates", "fillDate").addToUi(); //add dates beside events in Spreadsheet
     menu.addItem("Add Events to Calendar", "addToCalendar").addToUi(); //add spreadsheet events into calendar
+    menu.addItem("Calendar to Spreadsheet", "addToSpreadsheet").addToUi();
     menu.addItem("Show YRDSB Holidays", "holiday").addToUi();
 }
 function update() {
@@ -59,6 +61,13 @@ function update() {
 
   ss().getRange("D3").setValue("Default Calendar ID:");
   if(ss().getRange("E3").getValue()!=="") defCalID = ss().getRange("E3").getValue();
+
+  ss().getRange("D5").setValue("Calendar ID (to Spreadsheet)");
+  ss().getRange("D6").setValue("Calendar Start Date:");
+  ss().getRange("D7").setValue("Calendar End Date:");
+  spreadID     = ss().getRange("E5").getValue();
+  startCalDate = ss().getRange("E6").getValue();
+  endCalDate   = ss().getRange("E7").getValue();
 
   sa().setActiveSheet(sa().getSheetByName(sheetName));
 }
@@ -142,6 +151,24 @@ function addToCalendar() {
             event.setAllDayDate(start);
         }
     }
+}
+function addToSpreadsheet() {
+  update();
+  if(sa().getSheetByName("CalendarEvents")==null) sa().insertSheet("CalendarEvents");
+  sa().setActiveSheet(sa().getSheetByName("CalendarEvents"));
+  ss().setColumnWidths(1, 3, 250);
+  let calendar = CalendarApp.getCalendarById(spreadID);
+  let events = calendar.getEvents(startCalDate, endCalDate);
+
+  ss().getRange("A1").setValue("Title");
+  ss().getRange("B1").setValue("Start");
+  ss().getRange("C1").setValue("Color");
+  for(let i=0;i<events.length;i++) {
+    ss().getRange("A"+(2+i)).setValue(events[i].getTitle());
+    ss().getRange("B"+(2+i)).setValue(events[i].getStartTime());
+    // ss().getRange("C"+(2+i)).setBackground(colorBank[events[i].getColor()-1]);
+    ss().getRange("C"+(2+i)).setValue(events[i].getColor());
+  }
 }
 function holiday() {
     let sheetName = ss().getName();
