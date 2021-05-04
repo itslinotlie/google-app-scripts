@@ -26,14 +26,20 @@ function onInstall(e) {
     onOpen(e);
 }
 function onOpen(e) {
-    // let menu = UI.createMenu("Forms"); Used as standalone
-    let menu = SpreadsheetApp.getUi().createAddonMenu(); //used with congunction with google marketplace
+    let ui = SpreadsheetApp.getUi();
+    let menu = ui.createAddonMenu(); //used with congunction with google marketplace
     menu.addItem("Initialize Program", "initialize").addToUi();
-    menu.addItem("Delete Generated Events", "deleteAll").addToUi(); //delete events from calendar
-    menu.addItem("Fill in Lessons Dates", "fillDate").addToUi(); //add dates beside events in Spreadsheet
-    menu.addItem("Add Events to Calendar", "addToCalendar").addToUi(); //add spreadsheet events into calendar
-    menu.addItem("Calendar to Spreadsheet", "addToSpreadsheet").addToUi();
-    menu.addItem("Show YRDSB Holidays", "holiday").addToUi();
+    menu.addSubMenu(ui.createMenu("Spreadsheet helpers")
+      .addItem("Fill in Lessons Dates", "fillDate") //add dates beside events in Spreadsheet (requires a first date)
+      .addItem("Show YRDSB Holidays", "holiday") //lists YRDSB holidays from a date range
+    ).addToUi();
+    menu.addSubMenu(ui.createMenu("Calendar helpers")
+      .addItem("Delete Generated Events", "deleteAll") //deletes events from calendar
+    ).addToUi();
+    menu.addSubMenu(ui.createMenu("Calendar <-> Spreadsheet")
+      .addItem("Add Events to Calendar", "addToCalendar") //add spreadsheet events into calendar
+      .addItem("List Calendar to Spreadsheet", "addToSpreadsheet") //list calendar events from a range onto spreadsheet
+    ).addToUi();
 }
 function update() {
   let sheetName = ss().getName();
