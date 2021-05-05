@@ -20,23 +20,22 @@ let startCalDate, endCalDate;
 let delColor = 11, headerSize = 3; //default color is red
 let defCalID, curCalID, spreadID;
 //abbreviations
-let SA = SpreadsheetApp;
+let SA = SpreadsheetApp, UI = SA.getUi();
 
 function onInstall(e) {
     onOpen(e);
 }
 function onOpen(e) {
-    let ui = SpreadsheetApp.getUi();
-    let menu = ui.createAddonMenu(); //used with congunction with google marketplace
+    let menu = UI.createAddonMenu(); //used with congunction with google marketplace
     menu.addItem("Initialize Program", "initialize").addToUi();
-    menu.addSubMenu(ui.createMenu("Spreadsheet helpers")
+    menu.addSubMenu(UI.createMenu("Spreadsheet helpers")
       .addItem("Fill in Lessons Dates", "fillDate") //add dates beside events in Spreadsheet (requires a first date)
       .addItem("Show YRDSB Holidays", "holiday") //lists YRDSB holidays from a date range
     ).addToUi();
-    menu.addSubMenu(ui.createMenu("Calendar helpers")
+    menu.addSubMenu(UI.createMenu("Calendar helpers")
       .addItem("Delete Generated Events", "deleteAll") //deletes events from calendar
     ).addToUi();
-    menu.addSubMenu(ui.createMenu("Calendar <-> Spreadsheet")
+    menu.addSubMenu(UI.createMenu("Calendar <-> Spreadsheet")
       .addItem("Add Events to Calendar", "addToCalendar") //add spreadsheet events into calendar
       .addItem("List Calendar to Spreadsheet", "addToSpreadsheet") //list calendar events from a range onto spreadsheet
     ).addToUi();
@@ -89,19 +88,25 @@ function initialize() {
     ss().getRange("B"+headerSize).setValue("Start");
     ss().getRange("C"+headerSize).setValue("Color");
 
+    setFormat(["A1:A1", "A3:C3"], ["bold", 12]);
     update(); holiday();
     sa().setActiveSheet(sa().getSheetByName(sheetName));
 }
 function deleteAll() {
-    update(); let calendar;
-    curCalID = ss().getRange("B1").getValue();
-    if(curCalID.includes("@")) calendar = CalendarApp.getCalendarById(curCalID);
-    else calendar = CalendarApp.getCalendarById(defCalID);
-    let events = calendar.getEvents(startDeleteDate, endDeleteDate);
+  update(); let calendar;
+  curCalID = ss().getRange("B1").getValue();
+  if(curCalID.includes("@")) calendar = CalendarApp.getCalendarById(curCalID);
+  else calendar = CalendarApp.getCalendarById(defCalID);
 
-    for(let i=0;i<events.length;i++) {
-        if(events[i].getColor()==delColor) events[i].deleteEvent();
-    }
+  if(calendar===null) {
+    UI.alert("Something went wrong ):", "I did not detect a Calendar ID. Either move your Spreadsheet or add a Calendar ID in the Settings page 'Default Calendar ID'", UI.ButtonSet.OK);
+    return;
+  }
+
+  let events = calendar.getEvents(startDeleteDate, endDeleteDate);
+  for(let i=0;i<events.length;i++) {
+    if(events[i].getColor()==delColor) events[i].deleteEvent();
+  }
 }
 function fillDate() {
     let sheetName = ss().getName();
