@@ -1,3 +1,8 @@
+/*
+  Completed and published progarm on Google's Spreadsheet Marketplace @ https://workspace.google.com/marketplace/app/sigma/716583315725 (:
+  - what this program does: provides more flexability to Google Form
+*/
+
 //customizable variables (for when I create a global settings page)
 var optionLength = 5;
 var desRow = 21, desCol = optionLength+10;

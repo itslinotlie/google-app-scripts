@@ -1,3 +1,6 @@
+/*
+  Still a work in progress
+*/
 
 var ss = function () { return SpreadsheetApp.getActiveSpreadsheet().getActiveSheet() }
 var sa = function () { return SpreadsheetApp.getActiveSpreadsheet(); }
@@ -44,7 +47,9 @@ function update() {
   let sheetName = ss().getName();
   if (sa().getSheetByName("Settings") == null) sa().insertSheet("Settings");
   sa().setActiveSheet(sa().getSheetByName("Settings"));
-  ss().setColumnWidths(1, 6, 175); //set column widths to be bigger
+  resizeSheet(100, 5);
+  ss().setColumnWidths(1, ss().getMaxColumns(), 175);
+  ss().setRowHeights(1, ss().getMaxRows(), 25);
 
   if (ss().getRange("B3").getValue() !== "") startDeleteDate = ss().getRange("B3").getValue();
   if (ss().getRange("B4").getValue() !== "") endDeleteDate = ss().getRange("B4").getValue();
@@ -79,9 +84,12 @@ function update() {
 function initialize() {
   let sheetName = ss().getName();
   ss().clear();
-  ss().setColumnWidths(1, 3, 175); //set column widths to be bigger
+  resizeSheet(100, 4);
+  ss().setColumnWidths(1, ss().getMaxColumns(), 175);
+  ss().setRowHeights(1, ss().getMaxRows(), 25);
+
   ss().getRange("A1").setValue("Cal ID:");
-  ss().getRange("B1").setValue("335396990@gapps.yrdsb.ca");
+  // ss().getRange("B1").setValue("335396990@gapps.yrdsb.ca");
   ss().getRange("B2").setValue("Dates are in the form of DD/MM/YYYY");
 
   ss().getRange("A" + headerSize).setValue("Title");
@@ -185,7 +193,9 @@ function holiday() {
   let sheetName = ss().getName();
   if (sa().getSheetByName("Holidays") == null) sa().insertSheet("Holidays");
   sa().setActiveSheet(sa().getSheetByName("Holidays"));
-  ss().setColumnWidths(1, 4, 175); //set column widths to be bigger
+  resizeSheet(100, 4);
+  ss().setColumnWidths(1, ss().getMaxColumns(), 175);
+  ss().setRowHeights(1, ss().getMaxRows(), 25);
 
   let start = new Date("01/09/2020"), end = new Date("01/06/2021");
   ss().getRange("A1").setValue("Holiday type");
@@ -215,6 +225,14 @@ function holiday() {
     ss().getRange("C" + (i + 3)).setValue(events[i].getAllDayEndDate());
   }
   sa().setActiveSheet(sa().getSheetByName(sheetName));
+}
+//adds/removes columns to match the desired size
+function resizeSheet(rowWant, colWant) {
+  let curRow = ss().getMaxRows(), curCol = ss().getMaxColumns();
+  if(curRow!==rowWant) //Exception: Invalid argument is thrown if you .inserRowsAfter(X, 0)
+    curRow>rowWant? ss().deleteRows(rowWant+1, curRow-rowWant):ss().insertRowsAfter(curRow-1, rowWant-curRow);
+  if(curCol!==colWant)
+    curCol>colWant? ss().deleteColumns(colWant+1, curCol-colWant):ss().insertColumnsAfter(curCol-1, colWant-curCol);
 }
 function setFormat(range, type) {
   for (let i = 0; i < range.length; i++) {
