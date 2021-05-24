@@ -17,13 +17,15 @@ const colorBank = [
   "#3f51b5",
   "#0b8043",
   "#d50000"
-]
+];
+const basicStyling = ["HCENTER", "VCENTER"];
 let startDeleteDate = new Date("01/09/2020"), endDeleteDate = new Date("01/06/2021");
 let startCalDate, endCalDate;
 let delColor = 11, headerSize = 3; //default color is red
 let defCalID, curCalID, spreadID;
 //abbreviations
 let SA = SpreadsheetApp, UI = SA.getUi();
+var highlight = "#29d57b", topBackground = "#faefcf", bottomBackground = "#f0f8ff", outline = "#000000"; //default is: green, tan, blue, black respectively
 
 function onInstall(e) {
   onOpen(e);
@@ -84,19 +86,35 @@ function update() {
 function initialize() {
   let sheetName = ss().getName();
   ss().clear();
-  resizeSheet(100, 4);
-  ss().setColumnWidths(1, ss().getMaxColumns(), 175);
-  ss().setRowHeights(1, ss().getMaxRows(), 25);
+  //dimensions
+  let desRow = 100, desCol = 3;
+  resizeSheet(desRow, desCol);
+  const columnSize = [300, 150, 150];
+  for(let i=0;i<columnSize.length;i++) ss().setColumnWidth(i+1, columnSize[i]);
+  ss().setRowHeights(1, desRow, 25);
+  ss().setRowHeight(headerSize, 50);
+  ss().getRange(1, headerSize, 25);
+  //colors
+  ss().getRange("A1:"+char(desCol)+(headerSize-1)).setBackground(topBackground);
+  ss().getRange("A"+headerSize+":"+char(desCol)+headerSize).setBackground(highlight);
+  ss().getRange("A"+(headerSize+1)+":"+char(desCol)+desRow).setBackground(bottomBackground);
+  //border
+  ss().getRange(headerSize+":"+headerSize).setBorder(true, false, true, false, false, false, outline, SA.BorderStyle.SOLID_MEDIUM);
+  //misc
+  setStrategy(headerSize+":"+headerSize, basicStyling);
+  setStrategy("A"+(headerSize+1)+":"+char(desCol)+desRow, ["WRAP", "VTOP", "HLEFT"]);
+  setStrategy("A"+(headerSize+1)+":A"+desRow, ["WRAP", "VTOP", "HLEFT"]);
+  setStrategy("B"+(headerSize+1)+":"+char(desCol)+desRow, ["HCENTER", "VCENTER"]);
+  setFormat(["A1:A1", "A3:C3"], ["bold", 12]);
 
-  ss().getRange("A1").setValue("Cal ID:");
-  // ss().getRange("B1").setValue("335396990@gapps.yrdsb.ca");
+  //content
+  ss().getRange("A1").setValue("Cal ID:"); //335396990@gapps.yrdsb.ca
   ss().getRange("B2").setValue("Dates are in the form of DD/MM/YYYY");
 
-  ss().getRange("A" + headerSize).setValue("Title");
-  ss().getRange("B" + headerSize).setValue("Start");
-  ss().getRange("C" + headerSize).setValue("Color");
+  ss().getRange("A" + headerSize).setValue("Event Title");
+  ss().getRange("B" + headerSize).setValue("Event Date");
+  ss().getRange("C" + headerSize).setValue("Calendar Color");
 
-  setFormat(["A1:A1", "A3:C3"], ["bold", 12]);
   update(); holiday();
   sa().setActiveSheet(sa().getSheetByName(sheetName));
 }
@@ -132,16 +150,16 @@ function fillDate() {
   for (let i = headerSize + 2; i <= data.length; i++) {
     let cell = '(B' + (i - 1) + ")";
     let start = '=' + cell + '+IF(WEEKDAY' + cell + '=6,3,1)';
-    ss().getRange("D1").setValue(start); //need a dummy cell
-    let date = new Date(ss().getRange("D1").getValue());
-    ss().getRange("D1").setValue(date); //to prevent infinte loop with the formula, I need to hardcode the date
+    ss().getRange("C1").setValue(start); //need a dummy cell
+    let date = new Date(ss().getRange("C1").getValue());
+    ss().getRange("C1").setValue(date); //to prevent infinte loop with the formula, I need to hardcode the date
     let srt = new Date(holiday[idx][1]), end = new Date(holiday[idx][2]);
 
     while (idx < holiday.length && +date >= +srt) {
       while (+srt <= +date && +date < +end) {
-        ss().getRange("D2").setValue(ss().getRange("D1").getValue());
-        ss().getRange("D1").setValue("=D2+IF(WEEKDAY(D2)=6,3,1)");
-        date = new Date(ss().getRange("D1").getValue());
+        ss().getRange("A2").setValue(ss().getRange("C1").getValue());
+        ss().getRange("C1").setValue("=A2+IF(WEEKDAY(A2)=6,3,1)");
+        date = new Date(ss().getRange("C1").getValue());
       }
       if (idx === holiday.length - 1) break;
       srt = new Date(holiday[++idx][1]); end = new Date(holiday[idx][2]);
@@ -150,7 +168,6 @@ function fillDate() {
     ss().getRange("C" + i).setBackground(colorBank[ss().getRange("C" + i).getValue() - 1]);
   }
   ss().getRange("C1").setValue("");
-  ss().getRange("D1").setValue("");
 }
 function addToCalendar() {
   update(); let calendar;
@@ -193,17 +210,35 @@ function holiday() {
   let sheetName = ss().getName();
   if (sa().getSheetByName("Holidays") == null) sa().insertSheet("Holidays");
   sa().setActiveSheet(sa().getSheetByName("Holidays"));
-  resizeSheet(100, 4);
-  ss().setColumnWidths(1, ss().getMaxColumns(), 175);
-  ss().setRowHeights(1, ss().getMaxRows(), 25);
+  //dimensions
+  let desRow = 200, desCol = 4, headerSize = 2;
+  resizeSheet(desRow, desCol);
+  const columnSize = [300, 150, 150, 150];
+  for(let i=0;i<columnSize.length;i++) ss().setColumnWidth(i+1, columnSize[i]);
+  ss().setRowHeights(1, desRow, 25);
+  ss().setRowHeight(1, 30); ss().setRowHeight(headerSize, 50);
+  //colors
+  ss().getRange("A1:"+char(desCol)+(headerSize-1)).setBackground(topBackground);
+  ss().getRange("A"+headerSize+":"+char(desCol)+headerSize).setBackground(highlight);
+  ss().getRange("A"+(headerSize+1)+":"+char(desCol)+desRow).setBackground(bottomBackground);
+  //border
+  ss().getRange(headerSize+":"+headerSize).setBorder(true, false, true, false, false, false, outline, SA.BorderStyle.SOLID_MEDIUM);
+  //misc
+  setStrategy("A1:"+char(desCol)+headerSize, basicStyling);
+  setStrategy("A"+(headerSize+1)+":"+char(desCol)+desRow, ["WRAP", "VTOP", "HLEFT"]);
+  setStrategy("B"+(headerSize+1)+":"+char(desCol)+desRow, ["HCENTER", "VCENTER"]);
+  //init row, init col, # of rows, # of cols
+  let range = ss().getRange(3, 1, ss().getMaxRows() - 3, ss().getMaxColumns());
+  range.clear();
+  setFormat(["A2:D2"], ["bold", 12]);
 
+  //content
   let start = new Date("01/09/2020"), end = new Date("01/06/2021");
   ss().getRange("A1").setValue("Holiday type");
   ss().getRange("B1").setValue("Event Start");
   ss().getRange("C1").setValue("Event End");
   ss().getRange("A2").setValue("Start Date:");
   ss().getRange("C2").setValue("End Date:");
-  //javascript date class is weird, but stackoverflow isn't (:
   if (ss().getRange("B2").getValue() === "") ss().getRange("B2").setValue(start.toLocaleDateString().substring(0, start.toLocaleString().indexOf(' ')));
   if (ss().getRange("D2").getValue() === "") ss().getRange("D2").setValue(end.toLocaleDateString().substring(0, end.toLocaleString().indexOf(' ')));
 
@@ -212,12 +247,6 @@ function holiday() {
 
   let calendar = CalendarApp.getCalendarById(yrdsbID());
   let events = calendar.getEvents(start, end);
-
-  //init row, init col, # of rows, # of cols
-  let range = ss().getRange(3, 1, ss().getMaxRows() - 3, ss().getMaxColumns());
-  range.clear();
-  setFormat(["A1:D2"], ["bold", 12]);
-  setStrategy("A1:A" + ss().getMaxRows(), ["WRAP"]);
 
   for (let i = 0; i < events.length; i++) {
     ss().getRange("A" + (i + 3)).setValue(events[i].getTitle());
@@ -252,6 +281,9 @@ function setStrategy(range, type) {
     else if (type[i] === "HLEFT") ss().getRange(range).setHorizontalAlignment("left");
     else if (type[i] === "HCENTER") ss().getRange(range).setHorizontalAlignment("center");
   }
+}
+function char(x) {
+  return String.fromCharCode(64+x);
 }
 /*
 updated color bank:
